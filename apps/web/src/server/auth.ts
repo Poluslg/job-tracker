@@ -15,12 +15,7 @@ export interface AuthUser {
   avatarUrl: string;
 }
 
-const LOCAL_DEV_USER: AuthUser = {
-  id: 'local-dev-user',
-  email: 'you@localhost',
-  name: 'Local user',
-  avatarUrl: '',
-};
+
 
 export function isAuthConfigured(): boolean {
   return isSupabaseConfigured();
@@ -28,8 +23,7 @@ export function isAuthConfigured(): boolean {
 
 export async function getAuthUser(): Promise<AuthUser | null> {
   if (!isSupabaseConfigured()) {
-    if (process.env.NODE_ENV === 'production') return null;
-    return LOCAL_DEV_USER;
+    return null;
   }
 
   const supabase = await getSupabaseServerClient();
