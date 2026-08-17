@@ -1,0 +1,27 @@
+{
+  "name": "job-ai-assistant",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AI Career Copilot — Chrome extension + web dashboard for job match analysis, resume tailoring and application tracking.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace @job-ai/web",
+    "dev:ext": "npm run dev --workspace @job-ai/extension",
+    "build": "npm run build:ext && npm run build:web",
+    "build:ext": "npm run build --workspace @job-ai/extension",
+    "build:web": "npm run build --workspace @job-ai/web",
+    "typecheck": "tsc -p tsconfig.json --pretty",
+    "test": "node --test packages/types/test/*.test.ts packages/core/test/*.test.ts packages/ai/test/*.test.ts",
+    "clean": "rm -rf apps/*/dist apps/web/.next node_modules/.cache"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=20.11"
+  }
+}

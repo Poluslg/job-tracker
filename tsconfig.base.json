@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": false,
+    "useUnknownInCatchVariables": true,
+
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+
+    "paths": {
+      "@/*": ["./apps/web/src/*"],
+      "@job-ai/types": ["./packages/types/src/index.ts"],
+      "@job-ai/core": ["./packages/core/src/index.ts"],
+      "@job-ai/core/*": ["./packages/core/src/*"],
+      "@job-ai/ai": ["./packages/ai/src/index.ts"],
+      "@job-ai/ai/*": ["./packages/ai/src/*"],
+      "@job-ai/ui": ["./packages/ui/src/index.ts"],
+      "@job-ai/ui/*": ["./packages/ui/src/*"]
+    }
+  }
+}

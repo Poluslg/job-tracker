@@ -1,0 +1,31 @@
+{
+  "name": "@job-ai/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "vite build && vite build --config vite.content.config.ts",
+    "preview": "echo 'Load apps/extension/dist as an unpacked extension in chrome://extensions'"
+  },
+  "dependencies": {
+    "@job-ai/ai": "*",
+    "@job-ai/core": "*",
+    "@job-ai/types": "*",
+    "@job-ai/ui": "*",
+    "lucide-react": "1.31.0",
+    "mammoth": "1.12.1",
+    "pdfjs-dist": "6.2.108",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "@types/chrome": "0.2.6",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@vitejs/plugin-react": "6.0.5",
+    "tailwindcss": "4.3.3",
+    "vite": "8.2.1"
+  }
+}

@@ -1,0 +1,158 @@
+@import 'tailwindcss';
+
+/*
+ * Shared design tokens for the extension and the dashboard.
+ *
+ * Both surfaces import this file so a single palette change updates the whole
+ * product. Colours are authored in oklch for predictable contrast between the
+ * light and dark ramps.
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-bg: oklch(99% 0.002 260);
+  --color-surface: oklch(100% 0 0);
+  --color-surface-muted: oklch(97% 0.004 260);
+  --color-border: oklch(91% 0.006 260);
+  --color-border-strong: oklch(84% 0.008 260);
+
+  --color-fg: oklch(21% 0.015 260);
+  --color-fg-muted: oklch(48% 0.012 260);
+  --color-fg-subtle: oklch(62% 0.01 260);
+
+  --color-brand: oklch(55% 0.19 262);
+  --color-brand-hover: oklch(49% 0.19 262);
+  --color-brand-subtle: oklch(96% 0.025 262);
+  --color-brand-fg: oklch(100% 0 0);
+
+  /* Semantic ramp used by score bands, statuses and match quality. */
+  --color-strong: oklch(58% 0.15 152);
+  --color-strong-subtle: oklch(95% 0.04 152);
+  --color-good: oklch(62% 0.14 200);
+  --color-good-subtle: oklch(95% 0.035 200);
+  --color-warn: oklch(70% 0.15 78);
+  --color-warn-subtle: oklch(96% 0.05 78);
+  --color-danger: oklch(58% 0.19 22);
+  --color-danger-subtle: oklch(96% 0.04 22);
+
+  --radius-card: 0.75rem;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+}
+
+/*
+ * Dark mode.
+ *
+ * Two paths, no JavaScript in either:
+ *  - an explicit choice puts `.dark` or `.light` on <html> (server-rendered
+ *    from a cookie, so there is no flash and no hydration mismatch);
+ *  - with no explicit choice, the media query below follows the OS.
+ */
+@layer theme {
+  @media (prefers-color-scheme: dark) {
+    :root:not(.light):not(.dark) {
+      --color-bg: oklch(17% 0.012 260);
+      --color-surface: oklch(21% 0.013 260);
+      --color-surface-muted: oklch(25% 0.014 260);
+      --color-border: oklch(30% 0.014 260);
+      --color-border-strong: oklch(38% 0.016 260);
+
+      --color-fg: oklch(96% 0.004 260);
+      --color-fg-muted: oklch(72% 0.012 260);
+      --color-fg-subtle: oklch(58% 0.012 260);
+
+      --color-brand: oklch(66% 0.17 262);
+      --color-brand-hover: oklch(72% 0.16 262);
+      --color-brand-subtle: oklch(28% 0.06 262);
+
+      --color-strong: oklch(70% 0.15 152);
+      --color-strong-subtle: oklch(28% 0.05 152);
+      --color-good: oklch(72% 0.12 200);
+      --color-good-subtle: oklch(28% 0.05 200);
+      --color-warn: oklch(78% 0.14 78);
+      --color-warn-subtle: oklch(30% 0.06 78);
+      --color-danger: oklch(68% 0.17 22);
+      --color-danger-subtle: oklch(29% 0.06 22);
+
+      color-scheme: dark;
+    }
+  }
+
+  .dark {
+    color-scheme: dark;
+    --color-bg: oklch(17% 0.012 260);
+    --color-surface: oklch(21% 0.013 260);
+    --color-surface-muted: oklch(25% 0.014 260);
+    --color-border: oklch(30% 0.014 260);
+    --color-border-strong: oklch(38% 0.016 260);
+
+    --color-fg: oklch(96% 0.004 260);
+    --color-fg-muted: oklch(72% 0.012 260);
+    --color-fg-subtle: oklch(58% 0.012 260);
+
+    --color-brand: oklch(66% 0.17 262);
+    --color-brand-hover: oklch(72% 0.16 262);
+    --color-brand-subtle: oklch(28% 0.06 262);
+
+    --color-strong: oklch(70% 0.15 152);
+    --color-strong-subtle: oklch(28% 0.05 152);
+    --color-good: oklch(72% 0.12 200);
+    --color-good-subtle: oklch(28% 0.05 200);
+    --color-warn: oklch(78% 0.14 78);
+    --color-warn-subtle: oklch(30% 0.06 78);
+    --color-danger: oklch(68% 0.17 22);
+    --color-danger-subtle: oklch(29% 0.06 22);
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Visible, consistent focus for keyboard users across both surfaces. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  /* The product has no decorative motion; respect the preference regardless. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--color-surface-muted) 25%,
+      var(--color-border) 37%,
+      var(--color-surface-muted) 63%
+    );
+    background-size: 400% 100%;
+    animation: skeleton-shimmer 1.4s ease infinite;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}

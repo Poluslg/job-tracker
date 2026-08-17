@@ -1,0 +1,5 @@
+@import '@job-ai/ui/styles.css';
+
+/* Tailwind v4 needs explicit source roots for workspace packages. */
+@source '../../../../packages/ui/src';
+@source '../';
