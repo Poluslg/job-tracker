@@ -43,7 +43,14 @@ export async function sendToTab<T extends ExtMessage["type"]>(
     response = (await chrome.tabs.sendMessage(tabId, message)) as ExtResponse<
       ExtResponseMap[T]
     >;
-  } catch {
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("Receiving end does not exist")) {
+      throw new MessageError(
+        "no-content-script",
+        "The extension was just updated. Please refresh the page and try again.",
+      );
+    }
     throw new MessageError(
       "no-content-script",
       "This page cannot be read by the extension. Chrome blocks extensions on browser pages, the Web Store and PDF viewers.",

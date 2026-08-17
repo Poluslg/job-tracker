@@ -88,7 +88,7 @@ function AnalyzeTab({
         <EmptyState
           icon={<ShieldAlert className="h-8 w-8" strokeWidth={1.5} />}
           title="This page can't be read"
-          description="Chrome blocks extensions on browser pages, the Web Store and PDF viewers. Open a job listing on a normal website and try again."
+          description={flow.error || "Chrome blocks extensions on browser pages, the Web Store and PDF viewers. Open a job listing on a normal website and try again."}
           action={
             <Button variant="outline" onClick={() => void flow.refresh()}>
               Check again
