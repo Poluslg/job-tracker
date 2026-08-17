@@ -53,7 +53,7 @@ export default async function ApplicationDetailPage({
         actions={
           application.url ? (
             <a
-              href={application.url}
+              href={application.url.startsWith('http') ? application.url : 'https://' + application.url}
               target="_blank"
               rel="noreferrer noopener"
               className="inline-flex h-9 items-center gap-2 rounded-lg border border-border-strong px-4 text-sm hover:bg-surface-muted"

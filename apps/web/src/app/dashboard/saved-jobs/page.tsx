@@ -71,7 +71,7 @@ export default async function SavedJobsPage() {
                     )}
                     {job.url && (
                       <a
-                        href={job.url}
+                        href={job.url.startsWith('http') ? job.url : 'https://' + job.url}
                         target="_blank"
                         rel="noreferrer noopener"
                         aria-label={`Open the posting for ${job.title}`}

@@ -234,7 +234,7 @@ export function ApplicationsTable({
                       <div className="flex items-center justify-end gap-1">
                         {app.url && (
                           <a
-                            href={app.url}
+                            href={app.url.startsWith('http') ? app.url : 'https://' + app.url}
                             target="_blank"
                             rel="noreferrer noopener"
                             aria-label={`Open the original posting for ${app.title}`}
