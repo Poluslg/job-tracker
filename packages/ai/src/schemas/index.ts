@@ -26,59 +26,78 @@ export const AIRequirements = z.object({
 export type AIRequirements = z.infer<typeof AIRequirements>;
 
 export const AIResumeParse = z.object({
-  contact: z
-    .object({
-      name: z.string().default(''),
-      email: z.string().default(''),
-      phone: z.string().default(''),
-      location: z.string().default(''),
-      linkedin: z.string().default(''),
-      github: z.string().default(''),
-      portfolio: z.string().default(''),
-    })
-    .prefault({}),
-  summary: z.string().default(''),
-  skills: z.array(z.string()).max(120).default([]),
+  contact: z.object({
+    name: z.string(),
+    email: z.string(),
+    phone: z.string(),
+    location: z.string(),
+    linkedin: z.string(),
+    github: z.string(),
+    portfolio: z.string(),
+  }),
+
+  summary: z.string(),
+
+  skills: z.array(z.string()).max(120),
+
   experience: z
     .array(
       z.object({
-        title: z.string().default(''),
-        company: z.string().default(''),
-        location: z.string().default(''),
-        startDate: z.string().default(''),
-        endDate: z.string().default(''),
-        current: z.boolean().default(false),
-        responsibilities: z.array(z.string()).default([]),
-        achievements: z.array(z.string()).default([]),
+        title: z.string(),
+        company: z.string(),
+        location: z.string(),
+        startDate: z.string(),
+        endDate: z.string(),
+        current: z.boolean(),
+        responsibilities: z.array(z.string()),
+        achievements: z.array(z.string()),
+        technologies: z.array(z.string()),
       }),
     )
-    .max(30)
-    .default([]),
+    .max(30),
+
   education: z
     .array(
       z.object({
-        degree: z.string().default(''),
-        field: z.string().default(''),
-        institution: z.string().default(''),
-        startDate: z.string().default(''),
-        endDate: z.string().default(''),
+        degree: z.string(),
+        field: z.string(),
+        institution: z.string(),
+        location: z.string(),
+        startDate: z.string(),
+        endDate: z.string(),
+        gpa: z.string(),
+        highlights: z.array(z.string()),
       }),
     )
-    .max(15)
-    .default([]),
-  certifications: z.array(z.object({ name: z.string(), issuer: z.string().default('') })).max(30).default([]),
+    .max(15),
+
+  certifications: z
+    .array(
+      z.object({
+        name: z.string(),
+        issuer: z.string(),
+        date: z.string(),
+        url: z.string(),
+      }),
+    )
+    .max(30),
+
   projects: z
     .array(
       z.object({
-        name: z.string().default(''),
-        description: z.string().default(''),
-        technologies: z.array(z.string()).default([]),
+        name: z.string(),
+        description: z.string(),
+        url: z.string(),
+        technologies: z.array(z.string()),
+        highlights: z.array(z.string()),
       }),
     )
-    .max(20)
-    .default([]),
-  languages: z.array(z.string()).max(20).default([]),
+    .max(20),
+
+  languages: z.array(z.string()).max(20),
 });
+
+
 export type AIResumeParse = z.infer<typeof AIResumeParse>;
 
 export const AIMatchInsights = z.object({
@@ -160,5 +179,8 @@ export const AIInterviewPrep = z.object({
 export type AIInterviewPrep = z.infer<typeof AIInterviewPrep>;
 
 export function jsonSchemaFor(schema: z.ZodType): Record<string, unknown> {
-  return z.toJSONSchema(schema, { io: 'input', unrepresentable: 'any' }) as Record<string, unknown>;
+  return z.toJSONSchema(schema, {
+    io: 'output',
+    unrepresentable: 'any',
+  }) as Record<string, unknown>;
 }

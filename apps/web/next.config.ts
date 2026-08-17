@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const config: NextConfig = {
-
+  serverExternalPackages: ['pdf-parse'],
   transpilePackages: ['@job-ai/types', '@job-ai/core', '@job-ai/ai', '@job-ai/ui'],
 
   typedRoutes: true,

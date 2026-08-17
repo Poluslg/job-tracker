@@ -17,7 +17,7 @@ export const OPENROUTER_META: AIProviderMeta = {
     'anthropic/claude-sonnet-4.5',
     'anthropic/claude-haiku-4.5',
     'openai/gpt-4.1-mini',
-    'google/gemini-2.5-flash',
+    'google/gemini-2.6-flash',
     'meta-llama/llama-3.3-70b-instruct',
   ],
   origin: 'https://openrouter.ai/*',
@@ -29,11 +29,7 @@ interface ChatCompletionResponse {
   usage?: { prompt_tokens?: number; completion_tokens?: number };
 }
 
-/**
- * OpenRouter speaks the OpenAI chat-completions dialect, so this is a thin
- * variant rather than a fork. Model ids are `vendor/model`, and the free-form
- * `model` field is honoured as-is so users can pick anything on the catalog.
- */
+
 export class OpenRouterProvider implements AIProvider {
   readonly id = 'openrouter' as const;
   readonly meta = OPENROUTER_META;

@@ -1,4 +1,5 @@
 import type { ResumeFileType } from '@job-ai/types';
+import { reflowDocument, toPdfItem, type PdfItem } from '@job-ai/core';
 
 export const MAX_RESUME_BYTES = 10 * 1024 * 1024;
 
@@ -69,54 +70,21 @@ async function extract(file: File, type: ResumeFileType): Promise<string> {
       const task = pdfjs.getDocument({ data });
       const doc = await task.promise;
 
-      const pages: string[] = [];
+      const pages: PdfItem[][] = [];
       try {
         for (let i = 1; i <= doc.numPages; i++) {
           const page = await doc.getPage(i);
           const content = await page.getTextContent();
-          pages.push(reflowPdfText(content.items));
+          // pdf.js returns positioned fragments; the shared reflow turns them
+          // back into lines, preserving column gaps.
+          pages.push(content.items.map(toPdfItem).filter((i): i is PdfItem => i !== null));
         }
       } finally {
         
         await task.destroy();
       }
-      return pages.join('\n\n');
+      return reflowDocument(pages);
     }
   }
 }
 
-interface PdfTextItem {
-  str?: string;
-  transform?: number[];
-  hasEOL?: boolean;
-}
-
-function reflowPdfText(items: unknown[]): string {
-  const rows = new Map<number, Array<{ x: number; text: string }>>();
-
-  for (const raw of items) {
-    const item = raw as PdfTextItem;
-    if (typeof item.str !== 'string' || !item.str.trim()) continue;
-    const transform = item.transform ?? [];
-    const x = typeof transform[4] === 'number' ? transform[4] : 0;
-    const y = typeof transform[5] === 'number' ? transform[5] : 0;
-    
-    const key = Math.round(y / 2);
-    const row = rows.get(key) ?? [];
-    row.push({ x, text: item.str });
-    rows.set(key, row);
-  }
-
-  return [...rows.entries()]
-    .sort((a, b) => b[0] - a[0]) 
-    .map(([, row]) =>
-      row
-        .sort((a, b) => a.x - b.x)
-        .map((r) => r.text)
-        .join(' ')
-        .replace(/\s+/g, ' ')
-        .trim(),
-    )
-    .filter(Boolean)
-    .join('\n');
-}

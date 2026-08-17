@@ -17,16 +17,27 @@ export function ResumeUpload({
   const [dragging, setDragging] = useState(false);
   const [pasteMode, setPasteMode] = useState(false);
   const [pasted, setPasted] = useState('');
+  const [quality, setQuality] = useState<{ score: number; missing: string[] } | null>(null);
+  const [savedLabel, setSavedLabel] = useState('');
 
   const handleFile = async (file: File) => {
     setBusy(true);
     setError(null);
+    setQuality(null);
     try {
       const { text, type } = await extractResumeText(file);
       const result = await send({
         type: 'SAVE_RESUME',
         payload: { fileName: file.name, fileType: type, text, useAI: false },
       });
+
+      // A partial parse is not a failure, but the user must be told which
+      // fields to check rather than finding out during an analysis.
+      if (result.quality.score < 85) {
+        setQuality(result.quality);
+        setSavedLabel(result.resume.label);
+        return;
+      }
       onUploaded(result.resume.label);
     } catch (err) {
       if (err instanceof ResumeFileError) setError({ message: err.message, hint: err.hint });
@@ -45,6 +56,11 @@ export function ResumeUpload({
         type: 'SAVE_RESUME',
         payload: { fileName: 'pasted-resume.txt', fileType: 'txt', text: pasted, useAI: false },
       });
+      if (result.quality.score < 85) {
+        setQuality(result.quality);
+        setSavedLabel(result.resume.label);
+        return;
+      }
       onUploaded(result.resume.label);
     } catch (err) {
       setError({
@@ -55,6 +71,45 @@ export function ResumeUpload({
       setBusy(false);
     }
   };
+
+  if (quality) {
+    return (
+      <div className="space-y-4">
+        <Alert tone="warn" title={`Saved, but some fields didn't parse cleanly (${quality.score}% complete)`}>
+          <p className="mt-1">
+            Resume layouts vary a lot, so this is common. Your resume is saved — these fields need a
+            quick check before the match score will be accurate:
+          </p>
+          <ul className="mt-1.5 space-y-0.5">
+            {quality.missing.map((field) => (
+              <li key={field}>• {field}</li>
+            ))}
+          </ul>
+        </Alert>
+
+        <p className="text-xs leading-relaxed text-fg-muted">
+          You can fix these in Settings → Resume. If the layout is unusual — multiple columns, tables,
+          or graphics — pasting the plain text instead often parses much better.
+        </p>
+
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => onUploaded(savedLabel)}>Continue</Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setQuality(null);
+              setPasteMode(true);
+            }}
+          >
+            Paste text instead
+          </Button>
+          <Button variant="ghost" onClick={() => setQuality(null)}>
+            Try another file
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (pasteMode) {
     return (

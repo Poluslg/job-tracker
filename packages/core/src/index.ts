@@ -8,6 +8,10 @@ export * from './extraction/platforms.ts';
 export * from './extraction/dom.ts';
 
 export * from './resume/parse.ts';
+export * from './resume/lines.ts';
+export * from './resume/sections.ts';
+export * from './resume/experience.ts';
+export * from './resume/pdfReflow.ts';
 
 export * from './scoring/skills.ts';
 export * from './scoring/ats.ts';

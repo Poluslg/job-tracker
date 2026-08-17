@@ -6,7 +6,7 @@ import { jsonSchemaFor } from '../schemas/index.ts';
 
 export interface RunOptions {
   signal?: AbortSignal;
-  
+
   maxAttempts?: number;
   temperature?: number;
   maxOutputTokens?: number;
@@ -16,7 +16,7 @@ export interface RunResult<T> {
   data: T;
   usage: AIUsage;
   promptVersion: string;
-  
+
   repaired: boolean;
 }
 
@@ -76,15 +76,17 @@ export async function runPrompt<TInput, TSchema extends z.ZodType>(
         user:
           attempt === 1
             ? prompt.build(input)
-            : 
-              `${prompt.build(input)}\n\nIMPORTANT: your previous reply was not valid JSON matching the requested shape. Reply with the JSON object only.`,
+            :
+            `${prompt.build(input)}\n\nIMPORTANT: your previous reply was not valid JSON matching the requested shape. Reply with the JSON object only.`,
         jsonSchema: jsonSchemaFor(schema),
         ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
         ...(options.maxOutputTokens !== undefined ? { maxOutputTokens: options.maxOutputTokens } : {}),
         ...(options.signal ? { signal: options.signal } : {}),
       });
 
+
       const cleaned = repairJson(response.text);
+
       if (cleaned !== response.text.trim()) repaired = true;
 
       let parsed: unknown;
@@ -115,7 +117,7 @@ export async function runPrompt<TInput, TSchema extends z.ZodType>(
     } catch (err) {
       lastError = err instanceof AIError ? err : new AIError('unknown', 'The AI request failed.');
       if (!lastError.retryable) throw lastError;
-      
+
       if (attempt < maxAttempts) await sleep(600 * attempt);
     }
   }

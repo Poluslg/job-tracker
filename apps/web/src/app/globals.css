@@ -1,10 +1,7 @@
 @import '@job-ai/ui/styles.css';
-
-/* Tailwind v4 needs explicit source roots for workspace packages. */
 @source '../../../../packages/ui/src';
 @source '../';
 
-/* Animation utilities for shadcn/Radix components */
 @keyframes enter {
   from { opacity: var(--tw-enter-opacity, 1); transform: translate(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0)) scale(var(--tw-enter-scale, 1)) rotate(var(--tw-enter-rotate, 0)); }
 }

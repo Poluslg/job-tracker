@@ -13,6 +13,7 @@ import {
   exportTracker,
   extractRequirements,
   fingerprintFor,
+  assessParseQuality,
   parseResumeText,
   profileToPlainText,
   toDataUrl,
@@ -208,7 +209,7 @@ async function saveResume(payload: {
   fileType: 'pdf' | 'docx' | 'txt';
   text: string;
   useAI: boolean;
-}): Promise<{ resume: Resume }> {
+}): Promise<{ resume: Resume; quality: { score: number; missing: string[] } }> {
   if (payload.text.trim().length < 100) {
     throw new Error(
       'We could not read enough text from that file. If it is a scanned PDF, try exporting a text-based version.',
@@ -238,7 +239,7 @@ async function saveResume(payload: {
     updatedAt: now,
   };
 
-  return { resume: await store.saveResume(resume) };
+  return { resume: await store.saveResume(resume), quality: assessParseQuality(parsed) };
 }
 
 async function requireAI(): Promise<CareerAI> {

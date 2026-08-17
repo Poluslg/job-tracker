@@ -66,7 +66,12 @@ export interface ExtResponseMap {
   UPDATE_APPLICATION: { application: Application };
   LIST_APPLICATIONS: { applications: Application[] };
   EXPORT_TRACKER: { fileName: string; mimeType: string; dataUrl: string };
-  SAVE_RESUME: { resume: Resume };
+  /**
+   * `quality` reports how completely the resume parsed, so the UI can tell the
+   * user exactly which fields need correcting instead of letting them discover
+   * a half-parsed profile during an analysis.
+   */
+  SAVE_RESUME: { resume: Resume; quality: { score: number; missing: string[] } };
   GET_SETTINGS: UserSettings;
   UPDATE_SETTINGS: UserSettings;
   TEST_AI_CONNECTION: { ok: boolean; message: string };

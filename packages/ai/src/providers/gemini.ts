@@ -12,8 +12,8 @@ export const GEMINI_META: AIProviderMeta = {
   id: 'gemini',
   name: 'Google Gemini',
   keyUrl: 'https://aistudio.google.com/apikey',
-  defaultModel: 'gemini-2.5-flash',
-  models: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  defaultModel: 'gemini-3.6-flash',
+  models: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-3.6-flash'],
   origin: 'https://generativelanguage.googleapis.com/*',
   requiresKey: true,
 };
@@ -42,7 +42,8 @@ export class GeminiProvider implements AIProvider {
 
   async complete(req: AICompletionRequest): Promise<AICompletionResponse> {
     const key = requireKey(this.config);
-    const model = resolveModel(this.config, this.meta);
+    // Allow users to provide their own model strings, falling back to resolveModel
+    const model = this.config.model?.trim() || resolveModel(this.config, this.meta);
     const started = Date.now();
 
     const generationConfig: Record<string, unknown> = {
@@ -50,8 +51,9 @@ export class GeminiProvider implements AIProvider {
       maxOutputTokens: req.maxOutputTokens ?? this.config.maxOutputTokens,
     };
     if (req.jsonSchema) {
+      const geminiSchema = toGeminiSchema(req.jsonSchema);
       generationConfig['responseMimeType'] = 'application/json';
-      generationConfig['responseSchema'] = toGeminiSchema(req.jsonSchema);
+      generationConfig['responseSchema'] = geminiSchema;
     }
 
     const json = await postJson<GenerateContentResponse>({
@@ -98,21 +100,74 @@ export class GeminiProvider implements AIProvider {
   }
 }
 
-/**
- * Gemini accepts a subset of JSON Schema. Strip the keywords it rejects
- * (`additionalProperties`, `$schema`) rather than failing the request.
- */
-function toGeminiSchema(schema: Record<string, unknown>): Record<string, unknown> {
+function toGeminiSchema(
+  schema: Record<string, unknown>,
+): Record<string, unknown> {
+  const allowedKeys = new Set([
+    'type',
+    'format',
+    'description',
+    'nullable',
+    'enum',
+    'properties',
+    'required',
+    'items',
+  ]);
+
   const clean = (node: unknown): unknown => {
-    if (Array.isArray(node)) return node.map(clean);
-    if (!node || typeof node !== 'object') return node;
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
-      if (k === 'additionalProperties' || k === '$schema' || k === 'default') continue;
-      out[k] = clean(v);
+    if (Array.isArray(node)) {
+      return node.map(clean);
     }
-    return out;
+
+    if (!node || typeof node !== 'object') {
+      return node;
+    }
+
+    const source = node as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(source)) {
+      if (!allowedKeys.has(key)) {
+        continue;
+      }
+
+      if (key === 'properties' && value && typeof value === 'object') {
+        const properties: Record<string, unknown> = {};
+
+        for (const [propertyName, propertySchema] of Object.entries(
+          value as Record<string, unknown>,
+        )) {
+          properties[propertyName] = clean(propertySchema);
+        }
+
+        result.properties = properties;
+        continue;
+      }
+
+      if (key === 'required' && Array.isArray(value)) {
+        const properties =
+          source.properties &&
+            typeof source.properties === 'object'
+            ? (source.properties as Record<string, unknown>)
+            : {};
+
+        result.required = value.filter(
+          (propertyName): propertyName is string =>
+            typeof propertyName === 'string' &&
+            Object.prototype.hasOwnProperty.call(
+              properties,
+              propertyName,
+            ),
+        );
+
+        continue;
+      }
+
+      result[key] = clean(value);
+    }
+
+    return result;
   };
+
   return clean(schema) as Record<string, unknown>;
 }
-
