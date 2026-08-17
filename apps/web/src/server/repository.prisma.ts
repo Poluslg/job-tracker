@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import type {
   Application,
   CoverLetter,
@@ -10,15 +10,20 @@ import type {
   Resume,
   ResumeVersion,
   UserSettings,
-} from '@job-ai/types';
-import { DEFAULT_SETTINGS, UserSettings as UserSettingsSchema } from '@job-ai/types';
-import type { Repository, UserData } from './repository.ts';
-import { getSupabaseAdminClient } from './supabase.ts';
+} from "@job-ai/types";
+import {
+  DEFAULT_SETTINGS,
+  UserSettings as UserSettingsSchema,
+} from "@job-ai/types";
+import type { Repository, UserData } from "./repository.ts";
+import { getSupabaseAdminClient } from "./supabase.ts";
 
 function createPrismaClient(): PrismaClient {
-  const connectionString = process.env['DATABASE_URL'];
+  const connectionString = process.env["DATABASE_URL"];
   if (!connectionString) {
-    throw new Error('DATABASE_URL is required for Prisma. Set it in apps/web/.env.local.');
+    throw new Error(
+      "DATABASE_URL is required for Prisma. Set it in apps/web/.env.local.",
+    );
   }
   const pool = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
@@ -27,21 +32,51 @@ function createPrismaClient(): PrismaClient {
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 export const prisma = globalForPrisma.prisma || createPrismaClient();
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 export class PrismaRepository implements Repository {
   async getUserData(userId: string): Promise<UserData> {
-    const [resumes, versions, jobs, analyses, applications, coverLetters, preps, settings] =
-      await Promise.all([
-        prisma.resume.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' } }),
-        prisma.resumeVersion.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }),
-        prisma.job.findMany({ where: { userId }, orderBy: { capturedAt: 'desc' } }),
-        prisma.analysis.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 300 }),
-        prisma.application.findMany({ where: { userId }, orderBy: { discoveredAt: 'desc' } }),
-        prisma.coverLetter.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }),
-        prisma.interviewPrep.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }),
-        prisma.userSettings.findUnique({ where: { userId } }),
-      ]);
+    const [
+      resumes,
+      versions,
+      jobs,
+      analyses,
+      applications,
+      coverLetters,
+      preps,
+      settings,
+    ] = await Promise.all([
+      prisma.resume.findMany({
+        where: { userId },
+        orderBy: { updatedAt: "desc" },
+      }),
+      prisma.resumeVersion.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.job.findMany({
+        where: { userId },
+        orderBy: { capturedAt: "desc" },
+      }),
+      prisma.analysis.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: 300,
+      }),
+      prisma.application.findMany({
+        where: { userId },
+        orderBy: { discoveredAt: "desc" },
+      }),
+      prisma.coverLetter.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.interviewPrep.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.userSettings.findUnique({ where: { userId } }),
+    ]);
 
     return {
       resumes: resumes.map((r) => r.data as unknown as Resume),
@@ -55,16 +90,18 @@ export class PrismaRepository implements Repository {
     };
   }
 
-  private async loadSettings(userId: string, blob: unknown): Promise<UserSettings> {
+  private async loadSettings(
+    userId: string,
+    blob: unknown,
+  ): Promise<UserSettings> {
     const parsed = blob ? UserSettingsSchema.safeParse(blob) : null;
     const settings = parsed?.success ? parsed.data : DEFAULT_SETTINGS;
 
-    let apiKey = '';
+    let apiKey = "";
     try {
       const cred = await prisma.aiCredential.findUnique({ where: { userId } });
-      apiKey = cred?.apiKey ?? '';
-    } catch {
-    }
+      apiKey = cred?.apiKey ?? "";
+    } catch {}
 
     return { ...settings, ai: { ...settings.ai, apiKey } };
   }
@@ -80,7 +117,11 @@ export class PrismaRepository implements Repository {
     return after;
   }
 
-  private async persistDiff(userId: string, before: UserData, after: UserData): Promise<void> {
+  private async persistDiff(
+    userId: string,
+    before: UserData,
+    after: UserData,
+  ): Promise<void> {
     await Promise.all([
       syncTable(
         userId,
@@ -214,8 +255,10 @@ export class PrismaRepository implements Repository {
     before: UserSettings,
     after: UserSettings,
   ): Promise<void> {
-    const blob: UserSettings = { ...after, ai: { ...after.ai, apiKey: '' } };
-    const blobChanged = JSON.stringify(blob) !== JSON.stringify({ ...before, ai: { ...before.ai, apiKey: '' } });
+    const blob: UserSettings = { ...after, ai: { ...after.ai, apiKey: "" } };
+    const blobChanged =
+      JSON.stringify(blob) !==
+      JSON.stringify({ ...before, ai: { ...before.ai, apiKey: "" } });
 
     if (blobChanged) {
       await prisma.userSettings.upsert({
@@ -228,8 +271,17 @@ export class PrismaRepository implements Repository {
     if (after.ai.apiKey !== before.ai.apiKey) {
       await prisma.aiCredential.upsert({
         where: { userId },
-        update: { provider: after.ai.provider, apiKey: after.ai.apiKey, updatedAt: new Date() },
-        create: { userId, provider: after.ai.provider, apiKey: after.ai.apiKey, updatedAt: new Date() },
+        update: {
+          provider: after.ai.provider,
+          apiKey: after.ai.apiKey,
+          updatedAt: new Date(),
+        },
+        create: {
+          userId,
+          provider: after.ai.provider,
+          apiKey: after.ai.apiKey,
+          updatedAt: new Date(),
+        },
       });
     }
   }
@@ -237,7 +289,8 @@ export class PrismaRepository implements Repository {
   async deleteUserData(userId: string): Promise<void> {
     const admin = getSupabaseAdminClient();
     const { error } = await admin.auth.admin.deleteUser(userId);
-    if (error) throw new Error(`Could not delete your account: ${error.message}`);
+    if (error)
+      throw new Error(`Could not delete your account: ${error.message}`);
   }
 }
 
@@ -252,11 +305,17 @@ async function syncTable<T extends Identified>(
   toRow: (item: T) => any,
   delegate: any,
 ): Promise<void> {
-  const beforeById = new Map(before.map((item) => [item.id, JSON.stringify(item)]));
+  const beforeById = new Map(
+    before.map((item) => [item.id, JSON.stringify(item)]),
+  );
   const afterIds = new Set(after.map((item) => item.id));
 
-  const changed = after.filter((item) => beforeById.get(item.id) !== JSON.stringify(item));
-  const removed = before.filter((item) => !afterIds.has(item.id)).map((item) => item.id);
+  const changed = after.filter(
+    (item) => beforeById.get(item.id) !== JSON.stringify(item),
+  );
+  const removed = before
+    .filter((item) => !afterIds.has(item.id))
+    .map((item) => item.id);
 
   if (changed.length > 0) {
     await prisma.$transaction(
@@ -267,7 +326,7 @@ async function syncTable<T extends Identified>(
           update: row,
           create: row,
         });
-      })
+      }),
     );
   }
 

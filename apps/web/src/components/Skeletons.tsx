@@ -1,6 +1,10 @@
-import { Skeleton } from '@job-ai/ui';
+import { Skeleton } from "@job-ai/ui";
 
-export function PageHeaderSkeleton({ hasDescription = false }: { hasDescription?: boolean }) {
+export function PageHeaderSkeleton({
+  hasDescription = false,
+}: {
+  hasDescription?: boolean;
+}) {
   return (
     <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0 space-y-2">

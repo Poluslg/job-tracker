@@ -1,4 +1,4 @@
-import { PageHeaderSkeleton, TableRowSkeleton } from '@/components/Skeletons';
+import { PageHeaderSkeleton, TableRowSkeleton } from "@/components/Skeletons";
 
 export default function ApplicationsLoading() {
   return (

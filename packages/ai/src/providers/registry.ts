@@ -1,9 +1,14 @@
-import type { AIProvider, AIProviderConfig, AIProviderId, AIProviderMeta } from '@job-ai/types';
-import { ANTHROPIC_META, AnthropicProvider } from './anthropic.ts';
-import { GEMINI_META, GeminiProvider } from './gemini.ts';
-import { MOCK_META, MockProvider } from './mock.ts';
-import { OPENAI_META, OpenAIProvider } from './openai.ts';
-import { OPENROUTER_META, OpenRouterProvider } from './openrouter.ts';
+import type {
+  AIProvider,
+  AIProviderConfig,
+  AIProviderId,
+  AIProviderMeta,
+} from "@job-ai/types";
+import { ANTHROPIC_META, AnthropicProvider } from "./anthropic.ts";
+import { GEMINI_META, GeminiProvider } from "./gemini.ts";
+import { MOCK_META, MockProvider } from "./mock.ts";
+import { OPENAI_META, OpenAIProvider } from "./openai.ts";
+import { OPENROUTER_META, OpenRouterProvider } from "./openrouter.ts";
 
 export const PROVIDER_META: Record<AIProviderId, AIProviderMeta> = {
   openai: OPENAI_META,
@@ -24,15 +29,15 @@ export const PROVIDER_ORIGINS = SELECTABLE_PROVIDERS.map((p) => p.origin);
 
 export function createProvider(config: AIProviderConfig): AIProvider {
   switch (config.provider) {
-    case 'openai':
+    case "openai":
       return new OpenAIProvider(config);
-    case 'anthropic':
+    case "anthropic":
       return new AnthropicProvider(config);
-    case 'gemini':
+    case "gemini":
       return new GeminiProvider(config);
-    case 'openrouter':
+    case "openrouter":
       return new OpenRouterProvider(config);
-    case 'mock':
+    case "mock":
       return new MockProvider();
   }
 }
@@ -46,5 +51,11 @@ export function isConfigured(config: AIProviderConfig): boolean {
   return !meta.requiresKey || config.apiKey.trim().length > 0;
 }
 
-export { AnthropicProvider, GeminiProvider, MockProvider, OpenAIProvider, OpenRouterProvider };
+export {
+  AnthropicProvider,
+  GeminiProvider,
+  MockProvider,
+  OpenAIProvider,
+  OpenRouterProvider,
+};
 export { ANTHROPIC_META, GEMINI_META, MOCK_META, OPENAI_META, OPENROUTER_META };

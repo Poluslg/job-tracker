@@ -1,21 +1,30 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const AIJobExtraction = z.object({
-  title: z.string().default(''),
-  company: z.string().default(''),
-  location: z.string().default(''),
+  title: z.string().default(""),
+  company: z.string().default(""),
+  location: z.string().default(""),
   employmentType: z
-    .enum(['full-time', 'part-time', 'contract', 'internship', 'temporary', 'unknown'])
-    .default('unknown'),
-  arrangement: z.enum(['onsite', 'hybrid', 'remote', 'unknown']).default('unknown'),
-  salaryText: z.string().default(''),
+    .enum([
+      "full-time",
+      "part-time",
+      "contract",
+      "internship",
+      "temporary",
+      "unknown",
+    ])
+    .default("unknown"),
+  arrangement: z
+    .enum(["onsite", "hybrid", "remote", "unknown"])
+    .default("unknown"),
+  salaryText: z.string().default(""),
   isJobPosting: z.boolean().default(false),
 });
 export type AIJobExtraction = z.infer<typeof AIJobExtraction>;
 
 export const AIRequirement = z.object({
   text: z.string().min(1),
-  kind: z.enum(['must-have', 'nice-to-have', 'responsibility', 'signal']),
+  kind: z.enum(["must-have", "nice-to-have", "responsibility", "signal"]),
   skills: z.array(z.string()).default([]),
   yearsRequired: z.number().nullable().default(null),
 });
@@ -97,20 +106,18 @@ export const AIResumeParse = z.object({
   languages: z.array(z.string()).max(20),
 });
 
-
 export type AIResumeParse = z.infer<typeof AIResumeParse>;
 
 export const AIMatchInsights = z.object({
-  
   hiddenSignals: z
-    .array(z.object({ text: z.string(), why: z.string().default('') }))
+    .array(z.object({ text: z.string(), why: z.string().default("") }))
     .max(8)
     .default([]),
   concerns: z
     .array(
       z.object({
         text: z.string(),
-        severity: z.enum(['high', 'medium', 'low']).default('medium'),
+        severity: z.enum(["high", "medium", "low"]).default("medium"),
       }),
     )
     .max(8)
@@ -120,16 +127,22 @@ export const AIMatchInsights = z.object({
       z.object({
         title: z.string(),
         detail: z.string(),
-        priority: z.enum(['high', 'medium', 'low']).default('medium'),
-        
+        priority: z.enum(["high", "medium", "low"]).default("medium"),
+
         needsUserConfirmation: z.boolean().default(true),
       }),
     )
     .max(10)
     .default([]),
-  
+
   terminologyBridges: z
-    .array(z.object({ jobTerm: z.string(), resumeTerm: z.string(), note: z.string().default('') }))
+    .array(
+      z.object({
+        jobTerm: z.string(),
+        resumeTerm: z.string(),
+        note: z.string().default(""),
+      }),
+    )
     .max(10)
     .default([]),
 });
@@ -137,18 +150,18 @@ export type AIMatchInsights = z.infer<typeof AIMatchInsights>;
 
 export const AITailorChange = z.object({
   section: z.string(),
-  original: z.string().default(''),
+  original: z.string().default(""),
   suggested: z.string(),
-  reason: z.string().default(''),
-  
+  reason: z.string().default(""),
+
   needsUserConfirmation: z.boolean().default(false),
 });
 
 export const AITailorResume = z.object({
-  summary: z.string().default(''),
+  summary: z.string().default(""),
   skillOrder: z.array(z.string()).max(60).default([]),
   changes: z.array(AITailorChange).max(30).default([]),
-  
+
   unverifiable: z.array(z.string()).max(20).default([]),
 });
 export type AITailorResume = z.infer<typeof AITailorResume>;
@@ -163,11 +176,16 @@ export const AIInterviewPrep = z.object({
   questions: z
     .array(
       z.object({
-        category: z.enum(['technical', 'behavioral', 'resume-based', 'company-role']),
+        category: z.enum([
+          "technical",
+          "behavioral",
+          "resume-based",
+          "company-role",
+        ]),
         question: z.string().min(1),
-        answerFramework: z.string().default(''),
+        answerFramework: z.string().default(""),
         drawFrom: z.array(z.string()).default([]),
-        difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
+        difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
       }),
     )
     .max(40)
@@ -180,7 +198,7 @@ export type AIInterviewPrep = z.infer<typeof AIInterviewPrep>;
 
 export function jsonSchemaFor(schema: z.ZodType): Record<string, unknown> {
   return z.toJSONSchema(schema, {
-    io: 'output',
-    unrepresentable: 'any',
+    io: "output",
+    unrepresentable: "any",
   }) as Record<string, unknown>;
 }

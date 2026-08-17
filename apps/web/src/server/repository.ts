@@ -1,5 +1,5 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import type {
   Application,
   CoverLetter,
@@ -9,10 +9,10 @@ import type {
   Resume,
   ResumeVersion,
   UserSettings,
-} from '@job-ai/types';
-import { DEFAULT_SETTINGS } from '@job-ai/types';
-import { isSupabaseConfigured } from './supabase.ts';
-import { PrismaRepository } from './repository.prisma.ts';
+} from "@job-ai/types";
+import { DEFAULT_SETTINGS } from "@job-ai/types";
+import { isSupabaseConfigured } from "./supabase.ts";
+import { PrismaRepository } from "./repository.prisma.ts";
 
 export interface UserData {
   resumes: Resume[];
@@ -34,8 +34,11 @@ export interface Profile {
 
 export interface Repository {
   getUserData(userId: string): Promise<UserData>;
-  updateUserData(userId: string, mutate: (data: UserData) => void | Promise<void>): Promise<UserData>;
-  
+  updateUserData(
+    userId: string,
+    mutate: (data: UserData) => void | Promise<void>,
+  ): Promise<UserData>;
+
   deleteUserData(userId: string): Promise<void>;
 }
 
@@ -52,7 +55,7 @@ export function emptyUserData(): UserData {
   };
 }
 
-const DB_PATH = resolve(process.cwd(), '.data', 'db.json');
+const DB_PATH = resolve(process.cwd(), ".data", "db.json");
 
 interface DevDatabase {
   data: Record<string, UserData>;
@@ -63,7 +66,7 @@ class JsonFileRepository implements Repository {
 
   private async read(): Promise<DevDatabase> {
     try {
-      return JSON.parse(await readFile(DB_PATH, 'utf8')) as DevDatabase;
+      return JSON.parse(await readFile(DB_PATH, "utf8")) as DevDatabase;
     } catch {
       return { data: {} };
     }
@@ -71,7 +74,7 @@ class JsonFileRepository implements Repository {
 
   private async write(db: DevDatabase): Promise<void> {
     await mkdir(dirname(DB_PATH), { recursive: true });
-    await writeFile(DB_PATH, JSON.stringify(db, null, 2), 'utf8');
+    await writeFile(DB_PATH, JSON.stringify(db, null, 2), "utf8");
   }
 
   private transaction<T>(fn: (db: DevDatabase) => Promise<T> | T): Promise<T> {
@@ -81,7 +84,7 @@ class JsonFileRepository implements Repository {
       await this.write(db);
       return result;
     });
-    
+
     this.queue = next.catch(() => undefined);
     return next;
   }
@@ -117,13 +120,13 @@ export function getRepository(): Repository {
     if (isSupabaseConfigured()) {
       instance = new PrismaRepository();
     } else {
-      if (process.env.NODE_ENV === 'production') {
+      if (process.env.NODE_ENV === "production") {
         throw new Error(
-          'Supabase must be configured in production. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.',
+          "Supabase must be configured in production. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
         );
       }
       console.warn(
-        '[repository] Supabase is not configured — using the local .data/db.json development store.',
+        "[repository] Supabase is not configured — using the local .data/db.json development store.",
       );
       instance = new JsonFileRepository();
     }

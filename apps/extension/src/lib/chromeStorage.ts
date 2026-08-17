@@ -1,5 +1,5 @@
-import type { KeyValueAdapter } from '@job-ai/core';
-import { StorageQuotaError } from '@job-ai/core';
+import type { KeyValueAdapter } from "@job-ai/core";
+import { StorageQuotaError } from "@job-ai/core";
 
 export class ChromeStorageAdapter implements KeyValueAdapter {
   private readonly area: chrome.storage.StorageArea;
@@ -17,10 +17,10 @@ export class ChromeStorageAdapter implements KeyValueAdapter {
     try {
       await this.area.set({ [key]: value });
     } catch (err) {
-      const message = err instanceof Error ? err.message : '';
+      const message = err instanceof Error ? err.message : "";
       if (/quota/i.test(message)) {
         throw new StorageQuotaError(
-          'Extension storage is full. Export your tracker and clear old applications from Settings.',
+          "Extension storage is full. Export your tracker and clear old applications from Settings.",
           { cause: err },
         );
       }

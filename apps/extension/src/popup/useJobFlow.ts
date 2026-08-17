@@ -4,20 +4,26 @@ import type {
   JobAnalysis,
   JobPosting,
   UserSettings,
-} from '@job-ai/types';
-import { STAGE_LABELS } from '@job-ai/types';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageError, getActiveTab, isRestrictedUrl, send, sendToTab } from '../lib/messaging.ts';
-import { applyTheme } from '../lib/theme.ts';
+} from "@job-ai/types";
+import { STAGE_LABELS } from "@job-ai/types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  MessageError,
+  getActiveTab,
+  isRestrictedUrl,
+  send,
+  sendToTab,
+} from "../lib/messaging.ts";
+import { applyTheme } from "../lib/theme.ts";
 
 export type PageStatus =
-  | 'loading'
-  | 'restricted' 
-  | 'no-resume'
-  | 'no-job' 
-  | 'detected' 
-  | 'analyzing'
-  | 'analyzed';
+  | "loading"
+  | "restricted"
+  | "no-resume"
+  | "no-job"
+  | "detected"
+  | "analyzing"
+  | "analyzed";
 
 export interface JobFlow {
   status: PageStatus;
@@ -27,7 +33,7 @@ export interface JobFlow {
   analysis: JobAnalysis | null;
   stage: AnalysisStage;
   error: string | null;
-  
+
   degraded: string | null;
   tabId: number | null;
   analyze: () => Promise<void>;
@@ -38,12 +44,12 @@ export interface JobFlow {
 }
 
 export function useJobFlow(): JobFlow {
-  const [status, setStatus] = useState<PageStatus>('loading');
+  const [status, setStatus] = useState<PageStatus>("loading");
   const [state, setState] = useState<ExtensionState | null>(null);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [job, setJob] = useState<JobPosting | null>(null);
   const [analysis, setAnalysis] = useState<JobAnalysis | null>(null);
-  const [stage, setStage] = useState<AnalysisStage>('detecting');
+  const [stage, setStage] = useState<AnalysisStage>("detecting");
   const [error, setError] = useState<string | null>(null);
   const [degraded, setDegraded] = useState<string | null>(null);
   const [tabId, setTabId] = useState<number | null>(null);
@@ -52,10 +58,13 @@ export function useJobFlow(): JobFlow {
 
   const load = useCallback(async () => {
     setError(null);
-    setStatus('loading');
+    setStatus("loading");
 
     try {
-      const [nextState, nextSettings] = await Promise.all([send({ type: 'GET_STATE' }), send({ type: 'GET_SETTINGS' })]);
+      const [nextState, nextSettings] = await Promise.all([
+        send({ type: "GET_STATE" }),
+        send({ type: "GET_SETTINGS" }),
+      ]);
       setState(nextState);
       setSettings(nextSettings);
 
@@ -63,7 +72,7 @@ export function useJobFlow(): JobFlow {
       themeCleanup.current = applyTheme(nextSettings.ui.theme);
 
       if (!nextState.hasResume) {
-        setStatus('no-resume');
+        setStatus("no-resume");
         return;
       }
 
@@ -71,28 +80,37 @@ export function useJobFlow(): JobFlow {
       setTabId(tab?.id ?? null);
 
       if (!tab?.id || isRestrictedUrl(tab.url)) {
-        setStatus('restricted');
+        setStatus("restricted");
         return;
       }
 
-      const detection = await sendToTab(tab.id, { type: 'EXTRACT_JOB' });
+      const detection = await sendToTab(tab.id, { type: "EXTRACT_JOB" });
       if (!detection.ok || !detection.job?.description) {
-        setStatus('no-job');
-        setError(detection.reason || 'No job description found on this page.');
+        setStatus("no-job");
+        setError(detection.reason || "No job description found on this page.");
         return;
       }
 
-      const active = await send({ type: 'GET_ACTIVE_JOB', payload: { tabId: tab.id } });
+      const active = await send({
+        type: "GET_ACTIVE_JOB",
+        payload: { tabId: tab.id },
+      });
       setJob(active.job ?? (detection.job as JobPosting));
       if (active.analysis) {
         setAnalysis(active.analysis);
-        setStatus('analyzed');
+        setStatus("analyzed");
       } else {
-        setStatus('detected');
+        setStatus("detected");
       }
     } catch (err) {
-      setError(err instanceof MessageError ? err.message : 'Could not read this page.');
-      setStatus(err instanceof MessageError && err.code === 'no-content-script' ? 'restricted' : 'no-job');
+      setError(
+        err instanceof MessageError ? err.message : "Could not read this page.",
+      );
+      setStatus(
+        err instanceof MessageError && err.code === "no-content-script"
+          ? "restricted"
+          : "no-job",
+      );
     }
   }, []);
 
@@ -102,8 +120,11 @@ export function useJobFlow(): JobFlow {
   }, [load]);
 
   useEffect(() => {
-    const listener = (message: { type?: string; payload?: { stage?: string } }) => {
-      if (message.type === 'PROGRESS' && message.payload?.stage) {
+    const listener = (message: {
+      type?: string;
+      payload?: { stage?: string };
+    }) => {
+      if (message.type === "PROGRESS" && message.payload?.stage) {
         const next = message.payload.stage as AnalysisStage;
         if (next in STAGE_LABELS) setStage(next);
       }
@@ -114,56 +135,68 @@ export function useJobFlow(): JobFlow {
 
   const analyze = useCallback(async () => {
     if (!job) return;
-    setStatus('analyzing');
-    setStage('extracting');
+    setStatus("analyzing");
+    setStage("extracting");
     setError(null);
     setDegraded(null);
 
     try {
       const result = await send({
-        type: 'ANALYZE_JOB',
+        type: "ANALYZE_JOB",
         payload: { job, useAI: true },
       });
       setJob(result.job);
       setAnalysis(result.analysis);
-      const aiError = (result as { aiError?: { message: string } | null }).aiError;
+      const aiError = (result as { aiError?: { message: string } | null })
+        .aiError;
       if (aiError) {
         setDegraded(`${aiError.message} Showing local analysis only.`);
       }
-      setStatus('analyzed');
+      setStatus("analyzed");
     } catch (err) {
-      setError(err instanceof MessageError ? err.message : 'Analysis failed.');
-      setStatus('detected');
+      setError(err instanceof MessageError ? err.message : "Analysis failed.");
+      setStatus("detected");
     }
   }, [job]);
 
   const selectManually = useCallback(async () => {
     if (!tabId) return;
     try {
-      await sendToTab(tabId, { type: 'START_MANUAL_SELECTION' });
-      
+      await sendToTab(tabId, { type: "START_MANUAL_SELECTION" });
+
       window.close();
     } catch (err) {
-      setError(err instanceof MessageError ? err.message : 'Could not start selection.');
+      setError(
+        err instanceof MessageError
+          ? err.message
+          : "Could not start selection.",
+      );
     }
   }, [tabId]);
 
   const redetect = useCallback(async () => {
     if (!tabId) return;
-    setStatus('loading');
+    setStatus("loading");
     try {
-      const detection = await sendToTab(tabId, { type: 'EXTRACT_JOB', payload: { force: true } });
+      const detection = await sendToTab(tabId, {
+        type: "EXTRACT_JOB",
+        payload: { force: true },
+      });
       if (detection.ok && detection.job?.description) {
         setJob(detection.job as JobPosting);
-        setStatus('detected');
+        setStatus("detected");
         setError(null);
       } else {
-        setStatus('no-job');
-        setError(detection.reason || 'Still no job description found.');
+        setStatus("no-job");
+        setError(detection.reason || "Still no job description found.");
       }
     } catch (err) {
-      setError(err instanceof MessageError ? err.message : 'Could not re-read the page.');
-      setStatus('no-job');
+      setError(
+        err instanceof MessageError
+          ? err.message
+          : "Could not re-read the page.",
+      );
+      setStatus("no-job");
     }
   }, [tabId]);
 

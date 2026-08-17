@@ -1,14 +1,14 @@
-import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
-import { Skeleton } from '@job-ai/ui';
-import { getSession } from '@/server/auth';
-import { LoginForm } from './LoginForm';
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { Skeleton } from "@job-ai/ui";
+import { getSession } from "@/server/auth";
+import { LoginForm } from "./LoginForm";
 
-export const metadata = { title: 'Sign in' };
-export const dynamic = 'force-dynamic';
+export const metadata = { title: "Sign in" };
+export const dynamic = "force-dynamic";
 
 export default async function LoginPage() {
-  if (await getSession()) redirect('/dashboard');
+  if (await getSession()) redirect("/dashboard");
 
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-12">
@@ -31,8 +31,9 @@ export default async function LoginPage() {
         </Suspense>
 
         <p className="mt-8 text-xs leading-relaxed text-fg-subtle">
-          An account is optional. The Chrome extension works fully in guest mode with everything
-          stored on your own device — an account only adds cross-device sync and this dashboard.
+          An account is optional. The Chrome extension works fully in guest mode
+          with everything stored on your own device — an account only adds
+          cross-device sync and this dashboard.
         </p>
       </div>
     </main>

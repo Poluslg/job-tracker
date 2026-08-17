@@ -1,4 +1,4 @@
-import { CardSkeleton, PageHeaderSkeleton } from '@/components/Skeletons';
+import { CardSkeleton, PageHeaderSkeleton } from "@/components/Skeletons";
 
 export default function VersionsLoading() {
   return (

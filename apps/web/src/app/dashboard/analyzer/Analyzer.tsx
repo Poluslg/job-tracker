@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import type { JobAnalysis, JobPosting } from '@job-ai/types';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import type { JobAnalysis, JobPosting } from "@job-ai/types";
 import {
   Alert,
   AtsPanel,
@@ -22,11 +22,11 @@ import {
   Textarea,
   bandFor,
   useToast,
-} from '@job-ai/ui';
-import { FileText, CheckCircle2 } from 'lucide-react';
-import { errorMessage, post } from '@/lib/api';
-import { LinkButton } from '@/components/LinkButton';
-import { PageHeader } from '@/components/PageHeader';
+} from "@job-ai/ui";
+import { FileText, CheckCircle2 } from "lucide-react";
+import { errorMessage, post } from "@/lib/api";
+import { LinkButton } from "@/components/LinkButton";
+import { PageHeader } from "@/components/PageHeader";
 
 interface AnalyzeResponse {
   job: JobPosting;
@@ -35,11 +35,11 @@ interface AnalyzeResponse {
 }
 
 const STAGES = [
-  'Extracting requirements…',
-  'Reading your resume…',
-  'Comparing skills…',
-  'Analyzing ATS coverage…',
-  'Generating recommendations…',
+  "Extracting requirements…",
+  "Reading your resume…",
+  "Comparing skills…",
+  "Analyzing ATS coverage…",
+  "Generating recommendations…",
 ];
 
 function AnalyzerLoading() {
@@ -64,7 +64,10 @@ function AnalyzerLoading() {
 
         <div className="space-y-3 px-4">
           {STAGES.map((stage, i) => (
-            <div key={stage} className={`flex items-center gap-3 transition-opacity duration-500 ${i <= currentStage ? 'opacity-100' : 'opacity-30'}`}>
+            <div
+              key={stage}
+              className={`flex items-center gap-3 transition-opacity duration-500 ${i <= currentStage ? "opacity-100" : "opacity-30"}`}
+            >
               <div className="flex h-5 w-5 shrink-0 items-center justify-center">
                 {i < currentStage ? (
                   <CheckCircle2 className="h-4 w-4 text-brand" />
@@ -74,7 +77,9 @@ function AnalyzerLoading() {
                   <div className="h-4 w-4 rounded-full border-2 border-border"></div>
                 )}
               </div>
-              <span className={`text-sm ${i === currentStage ? 'text-fg font-medium animate-pulse' : 'text-fg-muted'}`}>
+              <span
+                className={`text-sm ${i === currentStage ? "text-fg font-medium animate-pulse" : "text-fg-muted"}`}
+              >
                 {stage}
               </span>
             </div>
@@ -98,15 +103,17 @@ export function Analyzer({
   const router = useRouter();
   const { toast } = useToast();
 
-  const [title, setTitle] = useState('');
-  const [company, setCompany] = useState('');
-  const [url, setUrl] = useState('');
-  const [description, setDescription] = useState('');
-  const [resumeId, setResumeId] = useState(resumes.find((r) => r.isDefault)?.id ?? resumes[0]?.id ?? '');
+  const [title, setTitle] = useState("");
+  const [company, setCompany] = useState("");
+  const [url, setUrl] = useState("");
+  const [description, setDescription] = useState("");
+  const [resumeId, setResumeId] = useState(
+    resumes.find((r) => r.isDefault)?.id ?? resumes[0]?.id ?? "",
+  );
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState('skills');
+  const [tab, setTab] = useState("skills");
   const [saving, setSaving] = useState(false);
 
   if (resumes.length === 0) {
@@ -118,7 +125,9 @@ export function Analyzer({
             icon={<FileText className="h-8 w-8" strokeWidth={1.5} />}
             title="Upload your resume to start analyzing jobs"
             description="Everything is compared against your resume, so that comes first."
-            action={<LinkButton href="/dashboard/resume">Add your resume</LinkButton>}
+            action={
+              <LinkButton href="/dashboard/resume">Add your resume</LinkButton>
+            }
           />
         </Card>
       </>
@@ -130,17 +139,17 @@ export function Analyzer({
     setError(null);
     setResult(null);
     try {
-      const response = await post<AnalyzeResponse>('/api/jobs/analyze', {
+      const response = await post<AnalyzeResponse>("/api/jobs/analyze", {
         job: { title, company, url, description },
         resumeId,
         useAI: aiEnabled,
       });
       setResult(response);
       if (response.aiError) {
-        toast(`${response.aiError.message} Showing local analysis.`, 'error');
+        toast(`${response.aiError.message} Showing local analysis.`, "error");
       }
     } catch (err) {
-      setError(errorMessage(err, 'Analysis failed.'));
+      setError(errorMessage(err, "Analysis failed."));
     } finally {
       setBusy(false);
     }
@@ -150,12 +159,15 @@ export function Analyzer({
     if (!result) return;
     setSaving(true);
     try {
-      await post('/api/applications', { jobId: result.job.id, analysisId: result.analysis.id });
-      toast('Added to your tracker.', 'success');
-      router.push('/dashboard/applications');
+      await post("/api/applications", {
+        jobId: result.job.id,
+        analysisId: result.analysis.id,
+      });
+      toast("Added to your tracker.", "success");
+      router.push("/dashboard/applications");
       router.refresh();
     } catch (err) {
-      toast(errorMessage(err, 'Could not save that job.'), 'error');
+      toast(errorMessage(err, "Could not save that job."), "error");
     } finally {
       setSaving(false);
     }
@@ -174,23 +186,40 @@ export function Analyzer({
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <Label htmlFor="job-title">Job title</Label>
-                <Input id="job-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+                <Input
+                  id="job-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="company">Company</Label>
-                <Input id="company" value={company} onChange={(e) => setCompany(e.target.value)} />
+                <Input
+                  id="company"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                />
               </div>
             </div>
 
             <div>
               <Label htmlFor="url">Job URL (optional)</Label>
-              <Input id="url" type="url" value={url} onChange={(e) => setUrl(e.target.value)} />
+              <Input
+                id="url"
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              />
             </div>
 
             {resumes.length > 1 && (
               <div>
                 <Label htmlFor="resume">Compare against</Label>
-                <Select id="resume" value={resumeId} onChange={(e) => setResumeId(e.target.value)}>
+                <Select
+                  id="resume"
+                  value={resumeId}
+                  onChange={(e) => setResumeId(e.target.value)}
+                >
                   {resumes.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.label}
@@ -212,19 +241,26 @@ export function Analyzer({
               />
               <p className="mt-1 text-[11px] text-fg-subtle">
                 {description.length} characters
-                {description.length > 0 && description.length < 400 && ' — paste the whole posting for a reliable analysis.'}
+                {description.length > 0 &&
+                  description.length < 400 &&
+                  " — paste the whole posting for a reliable analysis."}
               </p>
             </div>
 
             {!aiEnabled && (
               <Alert tone="neutral">
-                No AI provider configured. You&rsquo;ll still get the full local analysis — match
-                score, skill gaps and ATS coverage.
+                No AI provider configured. You&rsquo;ll still get the full local
+                analysis — match score, skill gaps and ATS coverage.
               </Alert>
             )}
             {error && <Alert tone="danger">{error}</Alert>}
 
-            <Button block loading={busy} disabled={description.trim().length < 100} onClick={() => void analyze()}>
+            <Button
+              block
+              loading={busy}
+              disabled={description.trim().length < 100}
+              onClick={() => void analyze()}
+            >
               Analyze match
             </Button>
           </CardBody>
@@ -252,12 +288,17 @@ export function Analyzer({
                       {bandFor(result.analysis.score.overall).label}
                     </Badge>
                     <p className="mt-2 text-xs text-fg-muted">
-                      ATS coverage {result.analysis.ats.coverage}% ·{' '}
-                      {result.analysis.skills.filter((s) => s.quality === 'missing' && s.required).length} required
-                      gaps
+                      ATS coverage {result.analysis.ats.coverage}% ·{" "}
+                      {
+                        result.analysis.skills.filter(
+                          (s) => s.quality === "missing" && s.required,
+                        ).length
+                      }{" "}
+                      required gaps
                     </p>
                     <p className="mt-1.5 text-[11px] leading-relaxed text-fg-subtle">
-                      An estimate of alignment, not a prediction of hiring outcomes.
+                      An estimate of alignment, not a prediction of hiring
+                      outcomes.
                     </p>
                   </div>
                 </CardBody>
@@ -268,10 +309,10 @@ export function Analyzer({
                 active={tab}
                 onChange={setTab}
                 items={[
-                  { id: 'skills', label: 'Skills' },
-                  { id: 'ats', label: 'ATS' },
-                  { id: 'advice', label: 'Advice' },
-                  { id: 'why', label: 'Why' },
+                  { id: "skills", label: "Skills" },
+                  { id: "ats", label: "ATS" },
+                  { id: "advice", label: "Advice" },
+                  { id: "why", label: "Why" },
                 ]}
               />
 
@@ -288,18 +329,29 @@ export function Analyzer({
                       <Card key={r.id}>
                         <CardBody>
                           <div className="flex items-start justify-between gap-2">
-                            <p className="text-xs font-medium text-fg">{r.title}</p>
+                            <p className="text-xs font-medium text-fg">
+                              {r.title}
+                            </p>
                             <Badge
                               size="sm"
-                              tone={r.priority === 'high' ? 'danger' : r.priority === 'medium' ? 'warn' : 'neutral'}
+                              tone={
+                                r.priority === "high"
+                                  ? "danger"
+                                  : r.priority === "medium"
+                                    ? "warn"
+                                    : "neutral"
+                              }
                             >
                               {r.priority}
                             </Badge>
                           </div>
-                          <p className="mt-1 text-[11px] leading-relaxed text-fg-muted">{r.detail}</p>
+                          <p className="mt-1 text-[11px] leading-relaxed text-fg-muted">
+                            {r.detail}
+                          </p>
                           {r.needsUserConfirmation && (
                             <p className="mt-1.5 text-[10px] text-warn">
-                              Needs your confirmation — only apply if it is genuinely true of your experience.
+                              Needs your confirmation — only apply if it is
+                              genuinely true of your experience.
                             </p>
                           )}
                         </CardBody>
@@ -312,7 +364,11 @@ export function Analyzer({
                 </TabPanel>
               </div>
 
-              <Button block loading={saving} onClick={() => void saveAndTrack()}>
+              <Button
+                block
+                loading={saving}
+                onClick={() => void saveAndTrack()}
+              >
                 Save &amp; track this application
               </Button>
             </div>

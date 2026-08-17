@@ -1,4 +1,4 @@
-declare module 'mammoth/mammoth.browser.js' {
+declare module "mammoth/mammoth.browser.js" {
   export interface ExtractRawTextOptions {
     arrayBuffer: ArrayBuffer;
   }
@@ -6,5 +6,7 @@ declare module 'mammoth/mammoth.browser.js' {
     value: string;
     messages: Array<{ type: string; message: string }>;
   }
-  export function extractRawText(options: ExtractRawTextOptions): Promise<ExtractRawTextResult>;
+  export function extractRawText(
+    options: ExtractRawTextOptions,
+  ): Promise<ExtractRawTextResult>;
 }

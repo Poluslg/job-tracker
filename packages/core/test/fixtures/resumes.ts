@@ -1,12 +1,3 @@
-/**
- * Real-world resume layouts.
- *
- * Each fixture is a shape that actually shows up in the wild — including the
- * ones that come out of a PDF text extractor with right-aligned dates collapsed
- * into runs of spaces. The parser is expected to handle all of them, and the
- * expectations below are what "fully parsed" means for each.
- */
-
 export interface ResumeFixture {
   name: string;
   text: string;
@@ -17,17 +8,12 @@ export interface ResumeFixture {
     location?: string;
     linkedin?: boolean;
     github?: boolean;
-    /** Minimum roles the parser must find. */
     roles: number;
-    /** Every role must have both of these populated. */
     requireTitleAndCompany?: boolean;
-    /** At least this many roles must carry a start date. */
     rolesWithDates?: number;
-    /** Minimum bullets across all roles. */
     bullets: number;
     education: number;
     minSkills: number;
-    /** Skills that must be detected somewhere in the profile. */
     skills?: string[];
     summary?: boolean;
     projects?: number;
@@ -35,9 +21,8 @@ export interface ResumeFixture {
   };
 }
 
-/** The most common ATS-friendly layout: "Title | Company | Dates" on one line. */
 export const PIPE_SINGLE_LINE: ResumeFixture = {
-  name: 'single-line pipe header',
+  name: "single-line pipe header",
   text: `Priya Raman
 priya.raman@example.com | (415) 555-0132 | San Francisco, CA
 linkedin.com/in/priyaraman | github.com/priyaraman
@@ -71,10 +56,10 @@ CERTIFICATIONS
 AWS Certified Solutions Architect - Associate, Amazon Web Services, 2021
 `,
   expect: {
-    name: 'Priya Raman',
-    email: 'priya.raman@example.com',
+    name: "Priya Raman",
+    email: "priya.raman@example.com",
     phone: true,
-    location: 'San Francisco, CA',
+    location: "San Francisco, CA",
     linkedin: true,
     github: true,
     roles: 3,
@@ -83,18 +68,14 @@ AWS Certified Solutions Architect - Associate, Amazon Web Services, 2021
     bullets: 6,
     education: 1,
     minSkills: 8,
-    skills: ['Go', 'Python', 'Kubernetes', 'PostgreSQL', 'Terraform'],
+    skills: ["Go", "Python", "Kubernetes", "PostgreSQL", "Terraform"],
     summary: true,
     certifications: 1,
   },
 };
 
-/**
- * Two-line header: title on its own line, company and dates beneath.
- * Extremely common in modern templates.
- */
 export const TWO_LINE_HEADER: ResumeFixture = {
-  name: 'two-line header (title, then company + dates)',
+  name: "two-line header (title, then company + dates)",
   text: `MARCUS OKONKWO
 Berlin, Germany · marcus.okonkwo@example.com · +49 151 234 5678
 github.com/mokonkwo
@@ -128,8 +109,8 @@ B.Sc. Computer Science
 Technical University of Berlin — 2013 to 2016
 `,
   expect: {
-    name: 'MARCUS OKONKWO',
-    email: 'marcus.okonkwo@example.com',
+    name: "MARCUS OKONKWO",
+    email: "marcus.okonkwo@example.com",
     phone: true,
     github: true,
     roles: 3,
@@ -138,17 +119,13 @@ Technical University of Berlin — 2013 to 2016
     bullets: 6,
     education: 1,
     minSkills: 7,
-    skills: ['React', 'TypeScript', 'Node.js', 'GraphQL'],
+    skills: ["React", "TypeScript", "Node.js", "GraphQL"],
     summary: true,
   },
 };
 
-/**
- * Right-aligned dates, as produced by a PDF text extractor: the date ends up
- * separated from the title by a run of spaces rather than a delimiter.
- */
 export const RIGHT_ALIGNED_DATES: ResumeFixture = {
-  name: 'right-aligned dates from PDF extraction',
+  name: "right-aligned dates from PDF extraction",
   text: `Elena Vasquez
 elena.vasquez@example.com  •  (212) 555-0198  •  New York, NY
 
@@ -176,8 +153,8 @@ Master of Science, Data Science                                          2018
 Columbia University                                              New York, NY
 `,
   expect: {
-    name: 'Elena Vasquez',
-    email: 'elena.vasquez@example.com',
+    name: "Elena Vasquez",
+    email: "elena.vasquez@example.com",
     phone: true,
     roles: 2,
     requireTitleAndCompany: true,
@@ -185,14 +162,13 @@ Columbia University                                              New York, NY
     bullets: 5,
     education: 1,
     minSkills: 6,
-    skills: ['Python', 'Spark', 'Airflow', 'Snowflake'],
+    skills: ["Python", "Spark", "Airflow", "Snowflake"],
     summary: true,
   },
 };
 
-/** "Company — Title" order, hyphen bullets, no blank line between roles. */
 export const COMPANY_FIRST_COMPACT: ResumeFixture = {
-  name: 'company-first, compact spacing, hyphen bullets',
+  name: "company-first, compact spacing, hyphen bullets",
   text: `DAVID CHEN
 Toronto, ON | david.chen@example.com | 416-555-0177 | linkedin.com/in/davidchen
 
@@ -220,8 +196,8 @@ Palette — Open-source colour contrast checker. React, TypeScript.
 - 800 GitHub stars.
 `,
   expect: {
-    name: 'DAVID CHEN',
-    email: 'david.chen@example.com',
+    name: "DAVID CHEN",
+    email: "david.chen@example.com",
     phone: true,
     linkedin: true,
     roles: 3,
@@ -230,15 +206,14 @@ Palette — Open-source colour contrast checker. React, TypeScript.
     bullets: 5,
     education: 1,
     minSkills: 6,
-    skills: ['Figma', 'UI Design', 'Design Systems', 'User Research'],
+    skills: ["Figma", "UI Design", "Design Systems", "User Research"],
     summary: true,
     projects: 1,
   },
 };
 
-/** Minimal, no explicit section headings at all — the hardest realistic case. */
 export const MINIMAL_NO_HEADINGS: ResumeFixture = {
-  name: 'sparse resume with unconventional headings',
+  name: "sparse resume with unconventional headings",
   text: `Sam Whitfield
 sam.whitfield@example.com
 
@@ -259,15 +234,15 @@ SCHOOLING
 B.Eng. Computer Engineering, University of Leeds, 2019
 `,
   expect: {
-    name: 'Sam Whitfield',
-    email: 'sam.whitfield@example.com',
+    name: "Sam Whitfield",
+    email: "sam.whitfield@example.com",
     roles: 2,
     requireTitleAndCompany: true,
     rolesWithDates: 2,
     bullets: 3,
     education: 1,
     minSkills: 5,
-    skills: ['Kubernetes', 'Terraform', 'Linux'],
+    skills: ["Kubernetes", "Terraform", "Linux"],
     summary: true,
   },
 };

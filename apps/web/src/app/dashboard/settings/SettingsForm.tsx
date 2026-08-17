@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import type { AIProviderId, UserSettings } from '@job-ai/types';
-import { PROVIDER_META, SELECTABLE_PROVIDERS } from '@job-ai/ai';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import type { AIProviderId, UserSettings } from "@job-ai/types";
+import { PROVIDER_META, SELECTABLE_PROVIDERS } from "@job-ai/ai";
 import {
   Alert,
   Badge,
@@ -17,11 +17,11 @@ import {
   Tabs,
   TabPanel,
   useToast,
-} from '@job-ai/ui';
-import { Download, ExternalLink, Trash2 } from 'lucide-react';
-import { del, errorMessage, patch } from '@/lib/api';
-import { applyTheme } from '@/lib/theme';
-import { PageHeader } from '@/components/PageHeader';
+} from "@job-ai/ui";
+import { Download, ExternalLink, Trash2 } from "lucide-react";
+import { del, errorMessage, patch } from "@/lib/api";
+import { applyTheme } from "@/lib/theme";
+import { PageHeader } from "@/components/PageHeader";
 
 export function SettingsForm({
   initialSettings,
@@ -36,27 +36,33 @@ export function SettingsForm({
   const { toast } = useToast();
   const [settings, setSettings] = useState(initialSettings);
   const [keyStored, setKeyStored] = useState(hasApiKey);
-  const [apiKey, setApiKey] = useState('');
-  const [tab, setTab] = useState('ai');
+  const [apiKey, setApiKey] = useState("");
+  const [tab, setTab] = useState("ai");
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const save = async (body: Partial<UserSettings>, message = 'Saved.') => {
+  const save = async (body: Partial<UserSettings>, message = "Saved.") => {
     setBusy(true);
     try {
-      const result = await patch<{ settings: UserSettings }>('/api/settings', body);
+      const result = await patch<{ settings: UserSettings }>(
+        "/api/settings",
+        body,
+      );
       setSettings(result.settings);
-      toast(message, 'success');
+      toast(message, "success");
       return result.settings;
     } catch (err) {
-      toast(errorMessage(err, 'Could not save that.'), 'error');
+      toast(errorMessage(err, "Could not save that."), "error");
       return null;
     } finally {
       setBusy(false);
     }
   };
 
-  const meta = PROVIDER_META[settings.ai.provider === 'mock' ? 'openai' : settings.ai.provider];
+  const meta =
+    PROVIDER_META[
+      settings.ai.provider === "mock" ? "openai" : settings.ai.provider
+    ];
 
   return (
     <>
@@ -66,10 +72,10 @@ export function SettingsForm({
         active={tab}
         onChange={setTab}
         items={[
-          { id: 'ai', label: 'AI provider' },
-          { id: 'appearance', label: 'Appearance' },
-          { id: 'privacy', label: 'Privacy & data' },
-          { id: 'account', label: 'Account' },
+          { id: "ai", label: "AI provider" },
+          { id: "appearance", label: "Appearance" },
+          { id: "privacy", label: "Privacy & data" },
+          { id: "account", label: "Account" },
         ]}
       />
 
@@ -81,12 +87,22 @@ export function SettingsForm({
                 <Label htmlFor="provider">Provider</Label>
                 <Select
                   id="provider"
-                  value={settings.ai.provider === 'mock' ? 'openai' : settings.ai.provider}
+                  value={
+                    settings.ai.provider === "mock"
+                      ? "openai"
+                      : settings.ai.provider
+                  }
                   onChange={(e) => {
                     const provider = e.target.value as AIProviderId;
                     void save(
-                      { ai: { ...settings.ai, provider, model: PROVIDER_META[provider].defaultModel } },
-                      'Provider updated.',
+                      {
+                        ai: {
+                          ...settings.ai,
+                          provider,
+                          model: PROVIDER_META[provider].defaultModel,
+                        },
+                      },
+                      "Provider updated.",
                     );
                   }}
                 >
@@ -100,26 +116,20 @@ export function SettingsForm({
 
               <div>
                 <Label htmlFor="model">Model</Label>
-                {settings.ai.provider === 'openrouter' ? (
-                  <Input
-                    id="model"
-                    value={settings.ai.model}
-                    onChange={(e) => setSettings({ ...settings, ai: { ...settings.ai, model: e.target.value } })}
-                    onBlur={() => void save({ ai: settings.ai }, 'Model updated.')}
-                  />
-                ) : (
-                  <Select
-                    id="model"
-                    value={settings.ai.model || meta.defaultModel}
-                    onChange={(e) => void save({ ai: { ...settings.ai, model: e.target.value } }, 'Model updated.')}
-                  >
-                    {meta.models.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
-                  </Select>
-                )}
+                <Input
+                  id="model"
+                  value={settings.ai.model || meta.defaultModel}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      ai: { ...settings.ai, model: e.target.value },
+                    })
+                  }
+                  onBlur={() =>
+                    void save({ ai: settings.ai }, "Model updated.")
+                  }
+                  placeholder={"e.g. " + meta.defaultModel}
+                />
               </div>
 
               <div>
@@ -140,7 +150,11 @@ export function SettingsForm({
                   autoComplete="off"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder={keyStored ? 'Saved — enter a new key to replace it' : 'Paste your key'}
+                  placeholder={
+                    keyStored
+                      ? "Saved — enter a new key to replace it"
+                      : "Paste your key"
+                  }
                 />
                 <a
                   href={meta.keyUrl}
@@ -153,9 +167,10 @@ export function SettingsForm({
               </div>
 
               <Alert tone="warn" title="Bring your own key">
-                Requests are billed to your own provider account and you are responsible for those
-                costs. Your key is stored against your account and used only to call the provider you
-                selected — it is never sent to a third party or included in exports.
+                Requests are billed to your own provider account and you are
+                responsible for those costs. Your key is stored against your
+                account and used only to call the provider you selected — it is
+                never sent to a third party or included in exports.
               </Alert>
 
               <div className="flex gap-2">
@@ -163,9 +178,12 @@ export function SettingsForm({
                   loading={busy}
                   disabled={!apiKey}
                   onClick={async () => {
-                    const next = await save({ ai: { ...settings.ai, apiKey } }, 'API key saved.');
+                    const next = await save(
+                      { ai: { ...settings.ai, apiKey } },
+                      "API key saved.",
+                    );
                     if (next) {
-                      setApiKey('');
+                      setApiKey("");
                       setKeyStored(true);
                     }
                   }}
@@ -179,12 +197,15 @@ export function SettingsForm({
                     onClick={async () => {
                       setBusy(true);
                       try {
-                        await del('/api/settings');
+                        await del("/api/settings");
                         setKeyStored(false);
-                        setApiKey('');
-                        toast('API key removed.', 'success');
+                        setApiKey("");
+                        toast("API key removed.", "success");
                       } catch (err) {
-                        toast(errorMessage(err, 'Could not remove the key.'), 'error');
+                        toast(
+                          errorMessage(err, "Could not remove the key."),
+                          "error",
+                        );
                       } finally {
                         setBusy(false);
                       }
@@ -200,7 +221,12 @@ export function SettingsForm({
                   checked={settings.demoMode}
                   label="Demo mode"
                   description="Use bundled sample responses instead of calling a provider. Output is clearly labelled as sample data."
-                  onChange={(demoMode) => void save({ demoMode }, demoMode ? 'Demo mode on.' : 'Demo mode off.')}
+                  onChange={(demoMode) =>
+                    void save(
+                      { demoMode },
+                      demoMode ? "Demo mode on." : "Demo mode off.",
+                    )
+                  }
                 />
               </div>
             </CardBody>
@@ -215,9 +241,12 @@ export function SettingsForm({
                 id="theme"
                 value={settings.ui.theme}
                 onChange={(e) => {
-                  const theme = e.target.value as UserSettings['ui']['theme'];
+                  const theme = e.target.value as UserSettings["ui"]["theme"];
                   applyTheme(theme);
-                  void save({ ui: { ...settings.ui, theme } }, 'Theme updated.');
+                  void save(
+                    { ui: { ...settings.ui, theme } },
+                    "Theme updated.",
+                  );
                 }}
               >
                 <option value="system">Match system</option>
@@ -234,17 +263,20 @@ export function SettingsForm({
               <CardBody className="space-y-4">
                 <h2 className="text-sm font-semibold">What gets sent where</h2>
                 <p className="text-xs leading-relaxed text-fg-muted">
-                  Your resume and job descriptions are stored against your account so they can sync
-                  across devices. They are sent to an AI provider only when you run a feature that
-                  needs one, using the key you configured. We do not sell resume data and do not use
-                  it to train models.
+                  Your resume and job descriptions are stored against your
+                  account so they can sync across devices. They are sent to an
+                  AI provider only when you run a feature that needs one, using
+                  the key you configured. We do not sell resume data and do not
+                  use it to train models.
                 </p>
                 <Switch
                   checked={settings.privacy.redactContactInfo}
                   label="Redact contact details in AI requests"
                   description="Replaces email addresses and phone numbers with placeholders before your resume text is sent."
                   onChange={(redactContactInfo) =>
-                    void save({ privacy: { ...settings.privacy, redactContactInfo } })
+                    void save({
+                      privacy: { ...settings.privacy, redactContactInfo },
+                    })
                   }
                 />
                 <Switch
@@ -252,7 +284,9 @@ export function SettingsForm({
                   label="Store a copy of each job description"
                   description="Keeps your tracker readable after a posting is taken down."
                   onChange={(storeJobSnapshots) =>
-                    void save({ privacy: { ...settings.privacy, storeJobSnapshots } })
+                    void save({
+                      privacy: { ...settings.privacy, storeJobSnapshots },
+                    })
                   }
                 />
                 <Switch
@@ -260,7 +294,9 @@ export function SettingsForm({
                   label="Share anonymous usage counts"
                   description="Off by default. Never includes resume, job or analysis content."
                   onChange={(shareAnonymousUsage) =>
-                    void save({ privacy: { ...settings.privacy, shareAnonymousUsage } })
+                    void save({
+                      privacy: { ...settings.privacy, shareAnonymousUsage },
+                    })
                   }
                 />
               </CardBody>
@@ -270,10 +306,20 @@ export function SettingsForm({
               <CardBody>
                 <h2 className="mb-3 text-sm font-semibold">Export your data</h2>
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" onClick={() => (window.location.href = '/api/export?format=xlsx')}>
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      (window.location.href = "/api/export?format=xlsx")
+                    }
+                  >
                     <Download className="h-4 w-4" /> Tracker as Excel
                   </Button>
-                  <Button variant="outline" onClick={() => (window.location.href = '/api/export?format=csv')}>
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      (window.location.href = "/api/export?format=csv")
+                    }
+                  >
                     <Download className="h-4 w-4" /> Tracker as CSV
                   </Button>
                 </div>
@@ -287,9 +333,10 @@ export function SettingsForm({
             <CardBody className="space-y-3">
               <h2 className="text-sm font-semibold">Delete your account</h2>
               <p className="text-xs leading-relaxed text-fg-muted">
-                This permanently removes your account and every resume, job, analysis, application,
-                cover letter and interview prep attached to it. There is no recovery window. Export
-                your tracker first if you might want it.
+                This permanently removes your account and every resume, job,
+                analysis, application, cover letter and interview prep attached
+                to it. There is no recovery window. Export your tracker first if
+                you might want it.
               </p>
               {confirmDelete ? (
                 <div className="flex gap-2">
@@ -299,23 +346,32 @@ export function SettingsForm({
                     onClick={async () => {
                       setBusy(true);
                       try {
-                        await del('/api/account');
-                        router.push('/login');
+                        await del("/api/account");
+                        router.push("/login");
                         router.refresh();
                       } catch (err) {
-                        toast(errorMessage(err, 'Could not delete your account.'), 'error');
+                        toast(
+                          errorMessage(err, "Could not delete your account."),
+                          "error",
+                        );
                         setBusy(false);
                       }
                     }}
                   >
                     Yes, delete my account permanently
                   </Button>
-                  <Button variant="ghost" onClick={() => setConfirmDelete(false)}>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setConfirmDelete(false)}
+                  >
                     Cancel
                   </Button>
                 </div>
               ) : (
-                <Button variant="outline" onClick={() => setConfirmDelete(true)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmDelete(true)}
+                >
                   <Trash2 className="h-4 w-4" /> Delete account
                 </Button>
               )}

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import type { JobAnalysis, JobPosting } from '@job-ai/types';
+import { useState } from "react";
+import type { JobAnalysis, JobPosting } from "@job-ai/types";
 import {
   Alert,
   AtsPanel,
@@ -14,15 +14,21 @@ import {
   TabPanel,
   bandFor,
   useToast,
-} from '@job-ai/ui';
-import { ArrowLeft, BookmarkPlus, FileEdit, Mail, MessageSquare } from 'lucide-react';
-import { MessageError, send } from '../../lib/messaging.ts';
-import type { useJobFlow } from '../useJobFlow.ts';
-import { TailorPanel } from './TailorPanel.tsx';
-import { CoverLetterPanel } from './CoverLetterPanel.tsx';
-import { InterviewPanel } from './InterviewPanel.tsx';
+} from "@job-ai/ui";
+import {
+  ArrowLeft,
+  BookmarkPlus,
+  FileEdit,
+  Mail,
+  MessageSquare,
+} from "lucide-react";
+import { MessageError, send } from "../../lib/messaging.ts";
+import type { useJobFlow } from "../useJobFlow.ts";
+import { TailorPanel } from "./TailorPanel.tsx";
+import { CoverLetterPanel } from "./CoverLetterPanel.tsx";
+import { InterviewPanel } from "./InterviewPanel.tsx";
 
-type Panel = 'tailor' | 'cover-letter' | 'interview' | null;
+type Panel = "tailor" | "cover-letter" | "interview" | null;
 
 export function AnalysisView({
   flow,
@@ -32,7 +38,7 @@ export function AnalysisView({
   onOpenOptions: () => void;
 }) {
   const [panel, setPanel] = useState<Panel>(null);
-  const [tab, setTab] = useState('overview');
+  const [tab, setTab] = useState("overview");
   const [saving, setSaving] = useState(false);
   const [tracked, setTracked] = useState(false);
   const { toast } = useToast();
@@ -53,9 +59,9 @@ export function AnalysisView({
     return (
       <div>
         {back}
-        {panel === 'tailor' && <TailorPanel job={job} analysis={analysis} />}
-        {panel === 'cover-letter' && <CoverLetterPanel job={job} />}
-        {panel === 'interview' && <InterviewPanel job={job} />}
+        {panel === "tailor" && <TailorPanel job={job} analysis={analysis} />}
+        {panel === "cover-letter" && <CoverLetterPanel job={job} />}
+        {panel === "interview" && <InterviewPanel job={job} />}
       </div>
     );
   }
@@ -64,14 +70,24 @@ export function AnalysisView({
     setSaving(true);
     try {
       const result = await send({
-        type: 'SAVE_JOB',
-        payload: { job, track, ...(analysis ? { analysisId: analysis.id } : {}) },
+        type: "SAVE_JOB",
+        payload: {
+          job,
+          track,
+          ...(analysis ? { analysisId: analysis.id } : {}),
+        },
       });
       setTracked(result.application !== null);
-      toast(track ? 'Added to your application tracker.' : 'Job saved.', 'success');
+      toast(
+        track ? "Added to your application tracker." : "Job saved.",
+        "success",
+      );
       void flow.refresh();
     } catch (err) {
-      toast(err instanceof MessageError ? err.message : 'Could not save this job.', 'error');
+      toast(
+        err instanceof MessageError ? err.message : "Could not save this job.",
+        "error",
+      );
     } finally {
       setSaving(false);
     }
@@ -88,11 +104,15 @@ export function AnalysisView({
           </Button>
           {!state?.aiConfigured && (
             <Alert tone="neutral">
-              No AI provider configured, so you&rsquo;ll get the local scoring analysis: match score,
-              skill gaps and ATS coverage.{' '}
-              <button type="button" className="underline" onClick={onOpenOptions}>
+              No AI provider configured, so you&rsquo;ll get the local scoring
+              analysis: match score, skill gaps and ATS coverage.{" "}
+              <button
+                type="button"
+                className="underline"
+                onClick={onOpenOptions}
+              >
                 Add a key
-              </button>{' '}
+              </button>{" "}
               to also get tailoring, cover letters and interview prep.
             </Alert>
           )}
@@ -106,10 +126,10 @@ export function AnalysisView({
             active={tab}
             onChange={setTab}
             items={[
-              { id: 'overview', label: 'Overview' },
-              { id: 'skills', label: 'Skills' },
-              { id: 'ats', label: 'ATS' },
-              { id: 'why', label: 'Why' },
+              { id: "overview", label: "Overview" },
+              { id: "skills", label: "Skills" },
+              { id: "ats", label: "ATS" },
+              { id: "why", label: "Why" },
             ]}
           />
 
@@ -129,18 +149,31 @@ export function AnalysisView({
           </div>
 
           <div className="space-y-2 border-t border-border pt-3">
-            <Button block variant="outline" onClick={() => setPanel('tailor')}>
+            <Button block variant="outline" onClick={() => setPanel("tailor")}>
               <FileEdit className="h-4 w-4" /> Tailor my resume
             </Button>
-            <Button block variant="outline" onClick={() => setPanel('cover-letter')}>
+            <Button
+              block
+              variant="outline"
+              onClick={() => setPanel("cover-letter")}
+            >
               <Mail className="h-4 w-4" /> Generate cover letter
             </Button>
-            <Button block variant="outline" onClick={() => setPanel('interview')}>
+            <Button
+              block
+              variant="outline"
+              onClick={() => setPanel("interview")}
+            >
               <MessageSquare className="h-4 w-4" /> Prepare for interview
             </Button>
-            <Button block loading={saving} disabled={tracked} onClick={() => void saveJob(true)}>
+            <Button
+              block
+              loading={saving}
+              disabled={tracked}
+              onClick={() => void saveJob(true)}
+            >
               <BookmarkPlus className="h-4 w-4" />
-              {tracked ? 'In your tracker' : 'Save & track application'}
+              {tracked ? "In your tracker" : "Save & track application"}
             </Button>
           </div>
         </>
@@ -150,18 +183,27 @@ export function AnalysisView({
 }
 
 function JobSummary({ job }: { job: JobPosting }) {
-  const facts = [job.location, job.employmentType !== 'unknown' ? job.employmentType : '', job.arrangement !== 'unknown' ? job.arrangement : '', job.salary.raw]
+  const facts = [
+    job.location,
+    job.employmentType !== "unknown" ? job.employmentType : "",
+    job.arrangement !== "unknown" ? job.arrangement : "",
+    job.salary?.raw,
+  ]
     .filter(Boolean)
-    .join(' · ');
+    .join(" · ");
 
   return (
     <div>
-      <h1 className="text-base leading-snug font-semibold text-fg">{job.title || 'Untitled role'}</h1>
-      <p className="text-sm text-fg-muted">{job.company || 'Unknown company'}</p>
+      <h1 className="text-base leading-snug font-semibold text-fg">
+        {job.title || "Untitled role"}
+      </h1>
+      <p className="text-sm text-fg-muted">
+        {job.company || "Unknown company"}
+      </p>
       {facts && <p className="mt-1 text-xs text-fg-subtle">{facts}</p>}
       <p className="mt-1.5 text-[10px] text-fg-subtle">
-        Detected via {job.source.replace('-', ' ')}
-        {job.platform !== 'generic' && ` · ${job.platform}`}
+        Detected via {job.source.replace("-", " ")}
+        {job.platform !== "generic" && ` · ${job.platform}`}
       </p>
     </div>
   );
@@ -169,8 +211,10 @@ function JobSummary({ job }: { job: JobPosting }) {
 
 function ScoreCard({ analysis }: { analysis: JobAnalysis }) {
   const band = bandFor(analysis.score.overall);
-  const strong = analysis.skills.filter((s) => s.quality === 'strong').length;
-  const missing = analysis.skills.filter((s) => s.quality === 'missing' && s.required).length;
+  const strong = analysis.skills.filter((s) => s.quality === "strong").length;
+  const missing = analysis.skills.filter(
+    (s) => s.quality === "missing" && s.required,
+  ).length;
 
   return (
     <Card>
@@ -180,16 +224,20 @@ function ScoreCard({ analysis }: { analysis: JobAnalysis }) {
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge tone={band.tone}>{band.label}</Badge>
             <Badge tone="neutral" size="sm">
-              {analysis.mode === 'ai-assisted' ? 'AI-assisted' : analysis.mode === 'mock' ? 'Demo data' : 'Local analysis'}
+              {analysis.mode === "ai-assisted"
+                ? "AI-assisted"
+                : analysis.mode === "mock"
+                  ? "Demo data"
+                  : "Local analysis"}
             </Badge>
           </div>
           <p className="mt-2 text-xs text-fg-muted">
-            {strong} skills matched · {missing} required {missing === 1 ? 'gap' : 'gaps'} · ATS{' '}
-            {analysis.ats.coverage}%
+            {strong} skills matched · {missing} required{" "}
+            {missing === 1 ? "gap" : "gaps"} · ATS {analysis.ats.coverage}%
           </p>
           <p className="mt-1.5 text-[10px] leading-relaxed text-fg-subtle">
-            An estimate of resume-to-posting alignment, not a prediction of interview or hiring
-            outcomes.
+            An estimate of resume-to-posting alignment, not a prediction of
+            interview or hiring outcomes.
           </p>
         </div>
       </CardBody>
@@ -204,12 +252,16 @@ function OverviewPanel({ analysis }: { analysis: JobAnalysis }) {
     <div className="space-y-4">
       <section>
         <p className="text-xs font-medium text-fg">Experience</p>
-        <p className="mt-1 text-xs leading-relaxed text-fg-muted">{analysis.experience.note}</p>
+        <p className="mt-1 text-xs leading-relaxed text-fg-muted">
+          {analysis.experience.note}
+        </p>
       </section>
 
       <section>
         <p className="text-xs font-medium text-fg">Education</p>
-        <p className="mt-1 text-xs leading-relaxed text-fg-muted">{analysis.education.note}</p>
+        <p className="mt-1 text-xs leading-relaxed text-fg-muted">
+          {analysis.education.note}
+        </p>
       </section>
 
       {analysis.concerns.length > 0 && (
@@ -217,10 +269,17 @@ function OverviewPanel({ analysis }: { analysis: JobAnalysis }) {
           <p className="text-xs font-medium text-fg">Gaps &amp; concerns</p>
           <ul className="mt-1.5 space-y-1.5">
             {analysis.concerns.slice(0, 5).map((c, i) => (
-              <li key={i} className="flex gap-2 text-xs leading-relaxed text-fg-muted">
+              <li
+                key={i}
+                className="flex gap-2 text-xs leading-relaxed text-fg-muted"
+              >
                 <span
                   className={
-                    c.severity === 'high' ? 'text-danger' : c.severity === 'medium' ? 'text-warn' : 'text-fg-subtle'
+                    c.severity === "high"
+                      ? "text-danger"
+                      : c.severity === "medium"
+                        ? "text-warn"
+                        : "text-fg-subtle"
                   }
                   aria-hidden="true"
                 >
@@ -238,20 +297,32 @@ function OverviewPanel({ analysis }: { analysis: JobAnalysis }) {
           <p className="text-xs font-medium text-fg">Recommended next steps</p>
           <div className="mt-1.5 space-y-2">
             {topRecs.map((r) => (
-              <div key={r.id} className="rounded-lg border border-border bg-surface p-2.5">
+              <div
+                key={r.id}
+                className="rounded-lg border border-border bg-surface p-2.5"
+              >
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-xs font-medium text-fg">{r.title}</p>
                   <Badge
                     size="sm"
-                    tone={r.priority === 'high' ? 'danger' : r.priority === 'medium' ? 'warn' : 'neutral'}
+                    tone={
+                      r.priority === "high"
+                        ? "danger"
+                        : r.priority === "medium"
+                          ? "warn"
+                          : "neutral"
+                    }
                   >
                     {r.priority}
                   </Badge>
                 </div>
-                <p className="mt-1 text-[11px] leading-relaxed text-fg-muted">{r.detail}</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-fg-muted">
+                  {r.detail}
+                </p>
                 {r.needsUserConfirmation && (
                   <p className="mt-1.5 text-[10px] text-warn">
-                    Needs your confirmation — only apply this if it is genuinely true of your experience.
+                    Needs your confirmation — only apply this if it is genuinely
+                    true of your experience.
                   </p>
                 )}
               </div>

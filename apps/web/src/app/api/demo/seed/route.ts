@@ -1,5 +1,5 @@
-import { mutateUserData, seedDemoWorkspace } from '@/server/data';
-import { fail, ok, route } from '@/server/http';
+import { mutateUserData, seedDemoWorkspace } from "@/server/data";
+import { fail, ok, route } from "@/server/http";
 
 export async function POST() {
   return route(async () => {
@@ -15,8 +15,8 @@ export async function POST() {
 
     if (refused) {
       return fail(
-        'not-empty',
-        'Sample data can only be loaded into an empty workspace. Delete your existing applications first.',
+        "not-empty",
+        "Sample data can only be loaded into an empty workspace. Delete your existing applications first.",
         409,
       );
     }

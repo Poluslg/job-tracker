@@ -1,4 +1,8 @@
-import { CardSkeleton, PageHeaderSkeleton, StatTileSkeleton } from '@/components/Skeletons';
+import {
+  CardSkeleton,
+  PageHeaderSkeleton,
+  StatTileSkeleton,
+} from "@/components/Skeletons";
 
 export default function DashboardLoading() {
   return (

@@ -1,6 +1,6 @@
-import { computeAnalytics } from '@job-ai/core';
-import { loadUserData } from '@/server/data';
-import { ok, route } from '@/server/http';
+import { computeAnalytics } from "@job-ai/core";
+import { loadUserData } from "@/server/data";
+import { ok, route } from "@/server/http";
 
 export async function GET() {
   return route(async () => {

@@ -1,11 +1,11 @@
-import type { JobPosting, Resume } from '@job-ai/types';
-import { nowIso } from '@job-ai/types';
-import { parseResumeText } from '../resume/parse.ts';
-import { extractRequirements } from '../extraction/requirements.ts';
-import { fingerprintFor } from '../extraction/dom.ts';
-import { createId } from '../util/id.ts';
+import type { JobPosting, Resume } from "@job-ai/types";
+import { nowIso } from "@job-ai/types";
+import { parseResumeText } from "../resume/parse.ts";
+import { extractRequirements } from "../extraction/requirements.ts";
+import { fingerprintFor } from "../extraction/dom.ts";
+import { createId } from "../util/id.ts";
 
-export const DEMO_MARKER = '__demo__';
+export const DEMO_MARKER = "__demo__";
 
 export const SAMPLE_RESUME_TEXT = `Alex Rivera
 alex.rivera@example.com | (555) 014-2280 | Austin, TX
@@ -147,10 +147,10 @@ export function createSampleResume(): Resume {
   const parsed = parseResumeText(SAMPLE_RESUME_TEXT);
   return {
     id: `${DEMO_MARKER}_resume`,
-    label: 'Sample Resume (demo)',
+    label: "Sample Resume (demo)",
     origin: {
-      fileName: 'alex-rivera-resume.txt',
-      fileType: 'txt',
+      fileName: "alex-rivera-resume.txt",
+      fileType: "txt",
       fileSize: SAMPLE_RESUME_TEXT.length,
       uploadedAt: now,
       rawText: SAMPLE_RESUME_TEXT,
@@ -166,24 +166,34 @@ export function createSampleResume(): Resume {
 
 export function createSampleJob(): JobPosting {
   const now = nowIso();
-  const company = 'Acme Technologies';
-  const title = 'Senior Frontend Engineer';
+  const company = "Acme Technologies";
+  const title = "Senior Frontend Engineer";
   return {
     id: `${DEMO_MARKER}_job`,
     title,
     company,
-    location: 'Austin, TX',
-    employmentType: 'full-time',
-    arrangement: 'hybrid',
-    salary: { min: 165000, max: 195000, currency: '$', period: 'year', raw: '$165,000 - $195,000 per year' },
+    location: "Austin, TX",
+    employmentType: "full-time",
+    arrangement: "hybrid",
+    salary: {
+      min: 165000,
+      max: 195000,
+      currency: "$",
+      period: "year",
+      raw: "$165,000 - $195,000 per year",
+    },
     description: SAMPLE_JOB_DESCRIPTION,
     requirements: extractRequirements(SAMPLE_JOB_DESCRIPTION),
-    url: 'https://example.com/careers/senior-frontend-engineer',
-    externalId: 'DEMO-4821',
+    url: "https://example.com/careers/senior-frontend-engineer",
+    externalId: "DEMO-4821",
     postedAt: now,
-    platform: 'generic',
-    source: 'structured-data',
-    fieldSources: { title: 'structured-data', company: 'structured-data', description: 'structured-data' },
+    platform: "generic",
+    source: "structured-data",
+    fieldSources: {
+      title: "structured-data",
+      company: "structured-data",
+      description: "structured-data",
+    },
     fingerprint: fingerprintFor(company, title, SAMPLE_JOB_DESCRIPTION),
     capturedAt: now,
     createdAt: now,
@@ -198,18 +208,72 @@ export function isDemoRecord(id: string): boolean {
 export function createSampleApplications(): Array<{
   company: string;
   title: string;
-  status: 'saved' | 'applied' | 'interview' | 'offer' | 'rejected' | 'technical-round';
+  status:
+    | "saved"
+    | "applied"
+    | "interview"
+    | "offer"
+    | "rejected"
+    | "technical-round";
   matchScore: number;
   daysAgo: number;
 }> {
   return [
-    { company: 'Acme Technologies', title: 'Senior Frontend Engineer', status: 'interview', matchScore: 82, daysAgo: 9 },
-    { company: 'Northstar Health', title: 'Frontend Engineer', status: 'applied', matchScore: 74, daysAgo: 4 },
-    { company: 'Lumen Analytics', title: 'Full Stack Engineer', status: 'rejected', matchScore: 58, daysAgo: 21 },
-    { company: 'Fernway', title: 'Senior React Engineer', status: 'technical-round', matchScore: 88, daysAgo: 14 },
-    { company: 'Quill', title: 'Product Engineer', status: 'saved', matchScore: 66, daysAgo: 1 },
-    { company: 'Baseline Systems', title: 'Frontend Platform Engineer', status: 'offer', matchScore: 91, daysAgo: 33 },
-    { company: 'Orbit Labs', title: 'Web Engineer', status: 'rejected', matchScore: 47, daysAgo: 27 },
-    { company: 'Havenly', title: 'Senior Software Engineer', status: 'applied', matchScore: 71, daysAgo: 6 },
+    {
+      company: "Acme Technologies",
+      title: "Senior Frontend Engineer",
+      status: "interview",
+      matchScore: 82,
+      daysAgo: 9,
+    },
+    {
+      company: "Northstar Health",
+      title: "Frontend Engineer",
+      status: "applied",
+      matchScore: 74,
+      daysAgo: 4,
+    },
+    {
+      company: "Lumen Analytics",
+      title: "Full Stack Engineer",
+      status: "rejected",
+      matchScore: 58,
+      daysAgo: 21,
+    },
+    {
+      company: "Fernway",
+      title: "Senior React Engineer",
+      status: "technical-round",
+      matchScore: 88,
+      daysAgo: 14,
+    },
+    {
+      company: "Quill",
+      title: "Product Engineer",
+      status: "saved",
+      matchScore: 66,
+      daysAgo: 1,
+    },
+    {
+      company: "Baseline Systems",
+      title: "Frontend Platform Engineer",
+      status: "offer",
+      matchScore: 91,
+      daysAgo: 33,
+    },
+    {
+      company: "Orbit Labs",
+      title: "Web Engineer",
+      status: "rejected",
+      matchScore: 47,
+      daysAgo: 27,
+    },
+    {
+      company: "Havenly",
+      title: "Senior Software Engineer",
+      status: "applied",
+      matchScore: 71,
+      daysAgo: 6,
+    },
   ];
 }

@@ -1,8 +1,8 @@
-import { loadUserData } from '@/server/data';
-import { ApplicationsTable } from './ApplicationsTable.tsx';
+import { loadUserData } from "@/server/data";
+import { ApplicationsTable } from "./ApplicationsTable.tsx";
 
-export const metadata = { title: 'Applications' };
-export const dynamic = 'force-dynamic';
+export const metadata = { title: "Applications" };
+export const dynamic = "force-dynamic";
 
 export default async function ApplicationsPage() {
   const { data } = await loadUserData();

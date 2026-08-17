@@ -1,7 +1,7 @@
-import type { ExtensionState } from '@job-ai/types';
-import { Badge, Tabs } from '@job-ai/ui';
-import { Settings } from 'lucide-react';
-import type { PopupTab } from '../App.tsx';
+import type { ExtensionState } from "@job-ai/types";
+import { Badge, Tabs } from "@job-ai/ui";
+import { Settings } from "lucide-react";
+import type { PopupTab } from "../App.tsx";
 
 export function Header({
   tab,
@@ -46,8 +46,8 @@ export function Header({
         active={tab}
         onChange={(id) => onTabChange(id as PopupTab)}
         items={[
-          { id: 'analyze', label: 'Analyze' },
-          { id: 'tracker', label: 'Tracker', badge: applicationCount },
+          { id: "analyze", label: "Analyze" },
+          { id: "tracker", label: "Tracker", badge: applicationCount },
         ]}
       />
     </header>

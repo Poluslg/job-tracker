@@ -1,15 +1,17 @@
-import { Badge, Card, CardBody, EmptyState } from '@job-ai/ui';
-import { Mail } from 'lucide-react';
-import { loadUserData } from '@/server/data';
-import { LinkButton } from '@/components/LinkButton';
-import { PageHeader } from '@/components/PageHeader';
+import { Badge, Card, CardBody, EmptyState } from "@job-ai/ui";
+import { Mail } from "lucide-react";
+import { loadUserData } from "@/server/data";
+import { LinkButton } from "@/components/LinkButton";
+import { PageHeader } from "@/components/PageHeader";
 
-export const metadata = { title: 'Cover Letters' };
-export const dynamic = 'force-dynamic';
+export const metadata = { title: "Cover Letters" };
+export const dynamic = "force-dynamic";
 
 export default async function CoverLettersPage() {
   const { data } = await loadUserData();
-  const letters = [...data.coverLetters].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const letters = [...data.coverLetters].sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
 
   return (
     <>
@@ -24,7 +26,9 @@ export default async function CoverLettersPage() {
             icon={<Mail className="h-8 w-8" strokeWidth={1.5} />}
             title="No cover letters yet"
             description="Analyze a job, then choose “Generate cover letter” in the extension or from an application."
-            action={<LinkButton href="/dashboard/analyzer">Analyze a job</LinkButton>}
+            action={
+              <LinkButton href="/dashboard/analyzer">Analyze a job</LinkButton>
+            }
           />
         </Card>
       ) : (
@@ -34,12 +38,18 @@ export default async function CoverLettersPage() {
               <CardBody>
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-fg">{letter.title || 'Untitled role'}</p>
+                    <p className="text-sm font-medium text-fg">
+                      {letter.title || "Untitled role"}
+                    </p>
                     <p className="text-xs text-fg-muted">{letter.company}</p>
                   </div>
                   <div className="flex shrink-0 gap-1.5">
                     <Badge size="sm">{letter.tone}</Badge>
-                    {letter.edited && <Badge size="sm" tone="brand">Edited</Badge>}
+                    {letter.edited && (
+                      <Badge size="sm" tone="brand">
+                        Edited
+                      </Badge>
+                    )}
                   </div>
                 </div>
 
@@ -49,10 +59,14 @@ export default async function CoverLettersPage() {
 
                 {letter.needsConfirmation.length > 0 && (
                   <div className="mt-3 rounded-lg border border-warn/30 bg-warn-subtle px-3 py-2">
-                    <p className="text-[11px] font-medium text-warn">Check before sending</p>
+                    <p className="text-[11px] font-medium text-warn">
+                      Check before sending
+                    </p>
                     <ul className="mt-1 space-y-0.5">
                       {letter.needsConfirmation.map((item, i) => (
-                        <li key={i} className="text-[11px] text-warn">• {item}</li>
+                        <li key={i} className="text-[11px] text-warn">
+                          • {item}
+                        </li>
                       ))}
                     </ul>
                   </div>

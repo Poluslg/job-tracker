@@ -5,7 +5,7 @@ import {
   cap,
   fence,
   type PromptTemplate,
-} from './shared.ts';
+} from "./shared.ts";
 
 export interface ResumeParseInput {
   resumeText: string;
@@ -13,8 +13,8 @@ export interface ResumeParseInput {
 }
 
 export const resumeParsePrompt: PromptTemplate<ResumeParseInput> = {
-  task: 'resume-parse',
-  version: '1.1.0',
+  task: "resume-parse",
+  version: "1.1.0",
 
   system: `${CORE_RULES}
 
@@ -72,8 +72,8 @@ The output must contain data from the resume whenever that data is explicitly av
 
   build(input) {
     const body = fence(
-      'resume',
-      cap(input.resumeText, LIMITS.resumeText, 'Resume'),
+      "resume",
+      cap(input.resumeText, LIMITS.resumeText, "Resume"),
     );
 
     return `Extract the resume into the requested structured schema.
@@ -84,7 +84,7 @@ ${body.block}
 A previous rule-based parser may have produced a draft. It is NOT authoritative. Use it only as a weak reference and correct any mistakes using the original resume text.
 
 DRAFT:
-${input.draftSummary || '(no draft available)'}
+${input.draftSummary || "(no draft available)"}
 
 Extraction requirements:
 - Extract the candidate's contact information.

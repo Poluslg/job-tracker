@@ -1,11 +1,11 @@
-import { UserSettings } from '@job-ai/types';
-import { loadUserData, mutateUserData } from '@/server/data';
-import { ok, readJson, route } from '@/server/http';
+import { UserSettings } from "@job-ai/types";
+import { loadUserData, mutateUserData } from "@/server/data";
+import { ok, readJson, route } from "@/server/http";
 
 function redact(settings: UserSettings): UserSettings & { hasApiKey: boolean } {
   return {
     ...settings,
-    ai: { ...settings.ai, apiKey: '' },
+    ai: { ...settings.ai, apiKey: "" },
     hasApiKey: settings.ai.apiKey.length > 0,
   };
 }
@@ -21,7 +21,7 @@ export async function PATCH(request: Request) {
   return route(async () => {
     const parsed = await readJson(request, UserSettings.partial());
     if (!parsed.ok) return parsed.response;
-    
+
     const patch = parsed.present(parsed.data);
 
     let next = null;
@@ -50,7 +50,10 @@ export async function DELETE() {
   return route(async () => {
     let next = null;
     await mutateUserData((data) => {
-      data.settings = { ...data.settings, ai: { ...data.settings.ai, apiKey: '' } };
+      data.settings = {
+        ...data.settings,
+        ai: { ...data.settings.ai, apiKey: "" },
+      };
       next = data.settings;
     });
     return ok({ settings: redact(next!) });

@@ -1,4 +1,11 @@
-import { CORE_RULES, LIMITS, UNTRUSTED_CONTENT_RULES, cap, fence, type PromptTemplate } from './shared.ts';
+import {
+  CORE_RULES,
+  LIMITS,
+  UNTRUSTED_CONTENT_RULES,
+  cap,
+  fence,
+  type PromptTemplate,
+} from "./shared.ts";
 
 export interface InterviewPrepInput {
   jobTitle: string;
@@ -10,8 +17,8 @@ export interface InterviewPrepInput {
 }
 
 export const interviewPrepPrompt: PromptTemplate<InterviewPrepInput> = {
-  task: 'interview-prep',
-  version: '1.0.0',
+  task: "interview-prep",
+  version: "1.0.0",
   system: `${CORE_RULES}
 
 ${UNTRUSTED_CONTENT_RULES}
@@ -35,12 +42,18 @@ For requirements the resume does not evidence, include a question about it and a
 "studyTopics" should prioritise the gaps. "questionsToAsk" must be specific to this posting, not generic.`,
 
   build(input) {
-    const job = fence('job-description', cap(input.description, LIMITS.jobDescription, 'Job description'));
-    const resume = fence('resume', cap(input.resumeText, LIMITS.resumeText, 'Resume'));
+    const job = fence(
+      "job-description",
+      cap(input.description, LIMITS.jobDescription, "Job description"),
+    );
+    const resume = fence(
+      "resume",
+      cap(input.resumeText, LIMITS.resumeText, "Resume"),
+    );
 
     return `Role: ${input.jobTitle} at ${input.company}
-Requirements with no resume evidence (expect questions here): ${input.missingRequired.join(', ') || '(none)'}
-Requirements with only adjacent evidence: ${input.partialSkills.join(', ') || '(none)'}
+Requirements with no resume evidence (expect questions here): ${input.missingRequired.join(", ") || "(none)"}
+Requirements with only adjacent evidence: ${input.partialSkills.join(", ") || "(none)"}
 
 Job description:
 ${job.block}

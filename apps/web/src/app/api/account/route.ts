@@ -1,6 +1,6 @@
-import { requireSession, signOut } from '@/server/auth';
-import { ok, route } from '@/server/http';
-import { getRepository } from '@/server/repository';
+import { requireSession, signOut } from "@/server/auth";
+import { ok, route } from "@/server/http";
+import { getRepository } from "@/server/repository";
 
 export async function DELETE() {
   return route(async () => {

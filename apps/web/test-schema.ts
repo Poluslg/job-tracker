@@ -1,14 +1,17 @@
-import { AIResumeParse } from '@job-ai/ai/schemas/index';
-import { jsonSchemaFor } from '@job-ai/ai/schemas/index';
-import util from 'util';
+import { AIResumeParse } from "@job-ai/ai/schemas/index";
+import { jsonSchemaFor } from "@job-ai/ai/schemas/index";
+import util from "util";
 
-function toGeminiSchema(schema: Record<string, unknown>): Record<string, unknown> {
+function toGeminiSchema(
+  schema: Record<string, unknown>,
+): Record<string, unknown> {
   const clean = (node: unknown): unknown => {
     if (Array.isArray(node)) return node.map(clean);
-    if (!node || typeof node !== 'object') return node;
+    if (!node || typeof node !== "object") return node;
     const result: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
-      if (k === 'additionalProperties' || k === '$schema' || k === 'default') continue;
+      if (k === "additionalProperties" || k === "$schema" || k === "default")
+        continue;
       result[k] = clean(v);
     }
     return result;

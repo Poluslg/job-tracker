@@ -1,4 +1,11 @@
-import { CORE_RULES, LIMITS, UNTRUSTED_CONTENT_RULES, cap, fence, type PromptTemplate } from './shared.ts';
+import {
+  CORE_RULES,
+  LIMITS,
+  UNTRUSTED_CONTENT_RULES,
+  cap,
+  fence,
+  type PromptTemplate,
+} from "./shared.ts";
 
 export interface TailorResumeInput {
   jobTitle: string;
@@ -12,8 +19,8 @@ export interface TailorResumeInput {
 }
 
 export const tailorResumePrompt: PromptTemplate<TailorResumeInput> = {
-  task: 'tailor-resume',
-  version: '1.0.0',
+  task: "tailor-resume",
+  version: "1.0.0",
   system: `${CORE_RULES}
 
 ${UNTRUSTED_CONTENT_RULES}
@@ -35,18 +42,24 @@ What you may NOT do:
 For every change, "original" must be the exact existing text (empty only for a genuinely new summary). Put anything you wanted to claim but could not verify into "unverifiable" instead of into a change.`,
 
   build(input) {
-    const job = fence('job-description', cap(input.description, LIMITS.jobDescription, 'Job description'));
-    const resume = fence('resume', cap(input.resumeText, LIMITS.resumeText, 'Resume'));
+    const job = fence(
+      "job-description",
+      cap(input.description, LIMITS.jobDescription, "Job description"),
+    );
+    const resume = fence(
+      "resume",
+      cap(input.resumeText, LIMITS.resumeText, "Resume"),
+    );
 
     return `Target role: ${input.jobTitle} at ${input.company}
 
-Skills the resume already evidences for this role: ${input.strongSkills.join(', ') || '(none)'}
-Skills where the resume shows only adjacent experience: ${input.partialSkills.join(', ') || '(none)'}
+Skills the resume already evidences for this role: ${input.strongSkills.join(", ") || "(none)"}
+Skills where the resume shows only adjacent experience: ${input.partialSkills.join(", ") || "(none)"}
 
 The user explicitly asked for these improvements:
-${input.acceptedRecommendations.map((r) => `- ${r}`).join('\n') || '- (no specific requests; use your judgement within the rules)'}
+${input.acceptedRecommendations.map((r) => `- ${r}`).join("\n") || "- (no specific requests; use your judgement within the rules)"}
 
-Current summary section: ${input.currentSummary || '(none)'}
+Current summary section: ${input.currentSummary || "(none)"}
 
 Job description:
 ${job.block}

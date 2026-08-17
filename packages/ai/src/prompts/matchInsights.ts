@@ -1,11 +1,18 @@
-import { CORE_RULES, LIMITS, UNTRUSTED_CONTENT_RULES, cap, fence, type PromptTemplate } from './shared.ts';
+import {
+  CORE_RULES,
+  LIMITS,
+  UNTRUSTED_CONTENT_RULES,
+  cap,
+  fence,
+  type PromptTemplate,
+} from "./shared.ts";
 
 export interface MatchInsightsInput {
   jobTitle: string;
   company: string;
   description: string;
   resumeText: string;
-  
+
   score: number;
   strongSkills: string[];
   partialSkills: Array<{ skill: string; rationale: string }>;
@@ -15,8 +22,8 @@ export interface MatchInsightsInput {
 }
 
 export const matchInsightsPrompt: PromptTemplate<MatchInsightsInput> = {
-  task: 'match-insights',
-  version: '1.0.0',
+  task: "match-insights",
+  version: "1.0.0",
   system: `${CORE_RULES}
 
 ${UNTRUSTED_CONTENT_RULES}
@@ -34,8 +41,14 @@ Produce four things:
 Never suggest adding a skill, tool or achievement the resume does not evidence. If the person lacks a requirement, say so plainly and suggest how to speak to it honestly instead.`,
 
   build(input) {
-    const job = fence('job-description', cap(input.description, LIMITS.jobDescription, 'Job description'));
-    const resume = fence('resume', cap(input.resumeText, LIMITS.resumeText, 'Resume'));
+    const job = fence(
+      "job-description",
+      cap(input.description, LIMITS.jobDescription, "Job description"),
+    );
+    const resume = fence(
+      "resume",
+      cap(input.resumeText, LIMITS.resumeText, "Resume"),
+    );
 
     return `Role: ${input.jobTitle} at ${input.company}
 
@@ -43,9 +56,9 @@ Deterministic analysis (facts — do not recompute):
 - Overall match score: ${input.score}/100
 - ATS keyword coverage: ${input.atsCoverage}%
 - Experience: ${input.experienceNote}
-- Strong skill matches: ${input.strongSkills.join(', ') || '(none)'}
-- Partial matches: ${input.partialSkills.map((p) => `${p.skill} (${p.rationale})`).join('; ') || '(none)'}
-- Required skills with no resume evidence: ${input.missingRequired.join(', ') || '(none)'}
+- Strong skill matches: ${input.strongSkills.join(", ") || "(none)"}
+- Partial matches: ${input.partialSkills.map((p) => `${p.skill} (${p.rationale})`).join("; ") || "(none)"}
+- Required skills with no resume evidence: ${input.missingRequired.join(", ") || "(none)"}
 
 Job description:
 ${job.block}

@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import type { AIProviderId, UserSettings } from '@job-ai/types';
-import { PROVIDER_META, SELECTABLE_PROVIDERS } from '@job-ai/ai';
-import { Alert, Badge, Button, Input, Label, Select } from '@job-ai/ui';
-import { CheckCircle2, ExternalLink, XCircle } from 'lucide-react';
-import { MessageError, send } from '../lib/messaging.ts';
+import { useState } from "react";
+import type { AIProviderId, UserSettings } from "@job-ai/types";
+import { PROVIDER_META, SELECTABLE_PROVIDERS } from "@job-ai/ai";
+import { Alert, Badge, Button, Input, Label, Select } from "@job-ai/ui";
+import { CheckCircle2, ExternalLink, XCircle } from "lucide-react";
+import { MessageError, send } from "../lib/messaging.ts";
 
 export function ProviderSetup({
   settings,
@@ -13,12 +13,16 @@ export function ProviderSetup({
   onSaved: (next: UserSettings) => void;
 }) {
   const [provider, setProvider] = useState<AIProviderId>(
-    settings.ai.provider === 'mock' ? 'openai' : settings.ai.provider,
+    settings.ai.provider === "mock" ? "openai" : settings.ai.provider,
   );
-  const [model, setModel] = useState(settings.ai.model || PROVIDER_META[provider].defaultModel);
-  const [apiKey, setApiKey] = useState('');
+  const [model, setModel] = useState(
+    settings.ai.model || PROVIDER_META[provider].defaultModel,
+  );
+  const [apiKey, setApiKey] = useState("");
   const [testing, setTesting] = useState(false);
-  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(
+    null,
+  );
   const [saving, setSaving] = useState(false);
 
   const meta = PROVIDER_META[provider];
@@ -35,14 +39,15 @@ export function ProviderSetup({
     setResult(null);
     try {
       const response = await send({
-        type: 'TEST_AI_CONNECTION',
+        type: "TEST_AI_CONNECTION",
         payload: { provider, apiKey: apiKey || settings.ai.apiKey, model },
       });
       setResult(response);
     } catch (err) {
       setResult({
         ok: false,
-        message: err instanceof MessageError ? err.message : 'Connection test failed.',
+        message:
+          err instanceof MessageError ? err.message : "Connection test failed.",
       });
     } finally {
       setTesting(false);
@@ -53,19 +58,19 @@ export function ProviderSetup({
     setSaving(true);
     try {
       const next = await send({
-        type: 'UPDATE_SETTINGS',
+        type: "UPDATE_SETTINGS",
         payload: {
           ai: {
             ...settings.ai,
             provider,
             model,
-            
+
             apiKey: apiKey || settings.ai.apiKey,
           },
           demoMode: false,
         },
       });
-      setApiKey('');
+      setApiKey("");
       onSaved(next);
     } finally {
       setSaving(false);
@@ -75,9 +80,9 @@ export function ProviderSetup({
   const removeKey = async () => {
     setSaving(true);
     try {
-      await send({ type: 'CLEAR_LOCAL_DATA', payload: { scope: 'ai-key' } });
-      const next = await send({ type: 'GET_SETTINGS' });
-      setApiKey('');
+      await send({ type: "CLEAR_LOCAL_DATA", payload: { scope: "ai-key" } });
+      const next = await send({ type: "GET_SETTINGS" });
+      setApiKey("");
       setResult(null);
       onSaved(next);
     } finally {
@@ -104,22 +109,16 @@ export function ProviderSetup({
 
       <div>
         <Label htmlFor="model">Model</Label>
-        {provider === 'openrouter' ? (
-          <Input
-            id="model"
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-            placeholder="vendor/model"
-          />
-        ) : (
-          <Select id="model" value={model} onChange={(e) => setModel(e.target.value)}>
-            {meta.models.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </Select>
-        )}
+        <Input
+          id="model"
+          value={model}
+          onChange={(e) => setModel(e.target.value)}
+          placeholder={
+            provider === "openrouter"
+              ? "vendor/model"
+              : "e.g. " + meta.defaultModel
+          }
+        />
       </div>
 
       <div>
@@ -141,7 +140,11 @@ export function ProviderSetup({
           onChange={(e) => setApiKey(e.target.value)}
           autoComplete="off"
           spellCheck={false}
-          placeholder={hasStoredKey ? 'Saved — enter a new key to replace it' : 'Paste your key'}
+          placeholder={
+            hasStoredKey
+              ? "Saved — enter a new key to replace it"
+              : "Paste your key"
+          }
         />
         <a
           href={meta.keyUrl}
@@ -154,29 +157,46 @@ export function ProviderSetup({
       </div>
 
       <Alert tone="warn" title="Bring your own key">
-        Requests go directly from this extension to {meta.name} using your key. Usage is billed to
-        your own provider account, and you are responsible for those costs. We never see or store
-        your key on any server.
+        Requests go directly from this extension to {meta.name} using your key.
+        Usage is billed to your own provider account, and you are responsible
+        for those costs. We never see or store your key on any server.
       </Alert>
 
       {result && (
-        <Alert tone={result.ok ? 'strong' : 'danger'}>
+        <Alert tone={result.ok ? "strong" : "danger"}>
           <span className="flex items-center gap-1.5">
-            {result.ok ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+            {result.ok ? (
+              <CheckCircle2 className="h-3.5 w-3.5" />
+            ) : (
+              <XCircle className="h-3.5 w-3.5" />
+            )}
             {result.message}
           </span>
         </Alert>
       )}
 
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" loading={testing} disabled={!apiKey && !hasStoredKey} onClick={() => void test()}>
+        <Button
+          variant="outline"
+          loading={testing}
+          disabled={!apiKey && !hasStoredKey}
+          onClick={() => void test()}
+        >
           Test connection
         </Button>
-        <Button loading={saving} disabled={!apiKey && !hasStoredKey} onClick={() => void save()}>
+        <Button
+          loading={saving}
+          disabled={!apiKey && !hasStoredKey}
+          onClick={() => void save()}
+        >
           Save
         </Button>
         {hasStoredKey && (
-          <Button variant="ghost" loading={saving} onClick={() => void removeKey()}>
+          <Button
+            variant="ghost"
+            loading={saving}
+            onClick={() => void removeKey()}
+          >
             Remove key
           </Button>
         )}

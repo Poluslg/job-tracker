@@ -11,7 +11,7 @@ import {
   TabPanel,
 } from "@job-ai/ui";
 import { Plus, Trash2 } from "lucide-react";
-import { errorMessage, patch } from "@/lib/api";
+import { MessageError, send } from "../lib/messaging.ts";
 
 export function ProfileEditor({
   resume,
@@ -28,14 +28,17 @@ export function ProfileEditor({
   const save = async () => {
     setBusy(true);
     try {
-      const result = await patch<{ resume: Resume }>("/api/resumes", {
-        id: resume.id,
-        profile,
-        needsReview: false,
+      const result = await send({
+        type: "UPDATE_RESUME_PROFILE",
+        payload: { id: resume.id, profile },
       });
       onSaved(result.resume);
     } catch (err) {
-      onError(errorMessage(err, "Could not save your changes."));
+      onError(
+        err instanceof MessageError
+          ? err.message
+          : "Could not save your changes.",
+      );
     } finally {
       setBusy(false);
     }

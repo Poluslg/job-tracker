@@ -1,10 +1,10 @@
-import type { Session } from '@job-ai/types';
-import { getSupabaseServerClient, isSupabaseConfigured } from './supabase.ts';
+import type { Session } from "@job-ai/types";
+import { getSupabaseServerClient, isSupabaseConfigured } from "./supabase.ts";
 
 export class UnauthorizedError extends Error {
-  constructor(message = 'You need to be signed in to do that.') {
+  constructor(message = "You need to be signed in to do that.") {
     super(message);
-    this.name = 'UnauthorizedError';
+    this.name = "UnauthorizedError";
   }
 }
 
@@ -14,8 +14,6 @@ export interface AuthUser {
   name: string;
   avatarUrl: string;
 }
-
-
 
 export function isAuthConfigured(): boolean {
   return isSupabaseConfigured();
@@ -33,9 +31,9 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   const meta = data.user.user_metadata ?? {};
   return {
     id: data.user.id,
-    email: data.user.email ?? '',
-    name: (meta['full_name'] as string) || (meta['name'] as string) || '',
-    avatarUrl: (meta['avatar_url'] as string) || '',
+    email: data.user.email ?? "",
+    name: (meta["full_name"] as string) || (meta["name"] as string) || "",
+    avatarUrl: (meta["avatar_url"] as string) || "",
   };
 }
 
@@ -46,7 +44,7 @@ export async function getSession(): Promise<Session | null> {
     userId: user.id,
     email: user.email,
     name: user.name,
-    
+
     expiresAt: new Date(Date.now() + 3600_000).toISOString(),
   };
 }

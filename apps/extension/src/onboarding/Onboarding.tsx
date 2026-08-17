@@ -1,42 +1,59 @@
-import { useCallback, useEffect, useState } from 'react';
-import type { UserSettings } from '@job-ai/types';
-import { Alert, Badge, Button, Card, CardBody, Skeleton, Switch } from '@job-ai/ui';
-import { Check, FileText, KeyRound, Rocket, ShieldCheck, Sparkles } from 'lucide-react';
-import { MessageError, send } from '../lib/messaging.ts';
-import { applyTheme } from '../lib/theme.ts';
-import { ResumeUpload } from '../components/ResumeUpload.tsx';
-import { ProviderSetup } from '../components/ProviderSetup.tsx';
+import { useCallback, useEffect, useState } from "react";
+import type { UserSettings } from "@job-ai/types";
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  Skeleton,
+  Switch,
+} from "@job-ai/ui";
+import {
+  Check,
+  FileText,
+  KeyRound,
+  Rocket,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
+import { MessageError, send } from "../lib/messaging.ts";
+import { applyTheme } from "../lib/theme.ts";
+import { ResumeUpload } from "../components/ResumeUpload.tsx";
+import { ProviderSetup } from "../components/ProviderSetup.tsx";
 
-const STEPS = ['welcome', 'resume', 'provider', 'privacy', 'ready'] as const;
+const STEPS = ["welcome", "resume", "provider", "privacy", "ready"] as const;
 type Step = (typeof STEPS)[number];
 
 const STEP_META: Record<Step, { title: string; icon: typeof Sparkles }> = {
-  welcome: { title: 'Welcome', icon: Sparkles },
-  resume: { title: 'Your resume', icon: FileText },
-  provider: { title: 'AI provider', icon: KeyRound },
-  privacy: { title: 'Privacy', icon: ShieldCheck },
-  ready: { title: 'Ready', icon: Rocket },
+  welcome: { title: "Welcome", icon: Sparkles },
+  resume: { title: "Your resume", icon: FileText },
+  provider: { title: "AI provider", icon: KeyRound },
+  privacy: { title: "Privacy", icon: ShieldCheck },
+  ready: { title: "Ready", icon: Rocket },
 };
 
 export function Onboarding() {
-  const [step, setStep] = useState<Step>('welcome');
+  const [step, setStep] = useState<Step>("welcome");
   const [settings, setSettings] = useState<UserSettings | null>(null);
-  const [resumeLabel, setResumeLabel] = useState<string>('');
+  const [resumeLabel, setResumeLabel] = useState<string>("");
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoadError(null);
     try {
-      const [next, state] = await Promise.all([send({ type: 'GET_SETTINGS' }), send({ type: 'GET_STATE' })]);
+      const [next, state] = await Promise.all([
+        send({ type: "GET_SETTINGS" }),
+        send({ type: "GET_STATE" }),
+      ]);
       setSettings(next);
       setResumeLabel(state.resumeLabel);
       applyTheme(next.ui.theme);
     } catch (err) {
-      
       setLoadError(
         err instanceof MessageError
           ? err.message
-          : 'Could not reach the extension background service.',
+          : "Could not reach the extension background service.",
       );
     }
   }, []);
@@ -49,22 +66,25 @@ export function Onboarding() {
 
   const finish = async () => {
     const next = await send({
-      type: 'UPDATE_SETTINGS',
+      type: "UPDATE_SETTINGS",
       payload: { onboardingCompletedAt: new Date().toISOString() },
     });
     setSettings(next);
-    setStep('ready');
+    setStep("ready");
   };
 
   if (loadError) {
     return (
       <div className="mx-auto max-w-2xl p-8">
-        <h1 className="text-lg font-semibold text-fg">Setup couldn&rsquo;t start</h1>
+        <h1 className="text-lg font-semibold text-fg">
+          Setup couldn&rsquo;t start
+        </h1>
         <Alert tone="danger" className="mt-3">
           {loadError}
         </Alert>
         <p className="mt-3 text-xs text-fg-muted">
-          This usually means the extension was just reloaded. Reloading this page normally fixes it.
+          This usually means the extension was just reloaded. Reloading this
+          page normally fixes it.
         </p>
         <div className="mt-4 flex gap-2">
           <Button onClick={() => void load()}>Try again</Button>
@@ -88,7 +108,10 @@ export function Onboarding() {
   return (
     <div className="min-h-screen bg-bg">
       <div className="mx-auto max-w-2xl px-6 py-10">
-        <nav aria-label="Setup progress" className="mb-8 flex items-center gap-1">
+        <nav
+          aria-label="Setup progress"
+          className="mb-8 flex items-center gap-1"
+        >
           {STEPS.map((s, i) => {
             const Icon = STEP_META[s].icon;
             const done = i < index;
@@ -98,51 +121,71 @@ export function Onboarding() {
                 <div
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs ${
                     active
-                      ? 'bg-brand text-brand-fg'
+                      ? "bg-brand text-brand-fg"
                       : done
-                        ? 'bg-strong-subtle text-strong'
-                        : 'bg-surface-muted text-fg-subtle'
+                        ? "bg-strong-subtle text-strong"
+                        : "bg-surface-muted text-fg-subtle"
                   }`}
-                  aria-current={active ? 'step' : undefined}
+                  aria-current={active ? "step" : undefined}
                 >
-                  {done ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
+                  {done ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <Icon className="h-3.5 w-3.5" />
+                  )}
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`h-px flex-1 ${done ? 'bg-strong' : 'bg-border'}`} />
+                  <div
+                    className={`h-px flex-1 ${done ? "bg-strong" : "bg-border"}`}
+                  />
                 )}
               </div>
             );
           })}
         </nav>
 
-        {step === 'welcome' && (
+        {step === "welcome" && (
           <StepShell
             title="Your AI career copilot, inside every job listing"
             description="Open any job posting and see how your resume actually lines up — what matches, what's missing, and what to do about it."
           >
             <ul className="space-y-3">
               {[
-                ['See your match', 'An explainable score with the reasoning behind every component.'],
-                ['Find the real gaps', 'Strong, partial and missing skills — partial matches are never dressed up as full ones.'],
-                ['Tailor honestly', 'Rewrites drawn only from what your resume already says. Nothing is invented.'],
-                ['Prepare and track', 'Interview prep per role, plus a tracker you can export to Excel.'],
+                [
+                  "See your match",
+                  "An explainable score with the reasoning behind every component.",
+                ],
+                [
+                  "Find the real gaps",
+                  "Strong, partial and missing skills — partial matches are never dressed up as full ones.",
+                ],
+                [
+                  "Tailor honestly",
+                  "Rewrites drawn only from what your resume already says. Nothing is invented.",
+                ],
+                [
+                  "Prepare and track",
+                  "Interview prep per role, plus a tracker you can export to Excel.",
+                ],
               ].map(([title, body]) => (
                 <li key={title} className="flex gap-3">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-strong" />
                   <span>
-                    <span className="block text-sm font-medium text-fg">{title}</span>
+                    <span className="block text-sm font-medium text-fg">
+                      {title}
+                    </span>
                     <span className="block text-xs text-fg-muted">{body}</span>
                   </span>
                 </li>
               ))}
             </ul>
-            <Button className="mt-6" onClick={() => setStep('resume')}>
+            <Button className="mt-6" onClick={() => setStep("resume")}>
               Get started
             </Button>
           </StepShell>
         )}
 
-        {step === 'resume' && (
+        {step === "resume" && (
           <StepShell
             title="Upload your resume"
             description="This is the only required step. Everything is analyzed against this."
@@ -151,18 +194,22 @@ export function Onboarding() {
               currentLabel={resumeLabel}
               onUploaded={(label) => {
                 setResumeLabel(label);
-                setStep('provider');
+                setStep("provider");
               }}
             />
             {resumeLabel && (
-              <Button variant="ghost" className="mt-4" onClick={() => setStep('provider')}>
+              <Button
+                variant="ghost"
+                className="mt-4"
+                onClick={() => setStep("provider")}
+              >
                 Continue with current resume
               </Button>
             )}
           </StepShell>
         )}
 
-        {step === 'provider' && (
+        {step === "provider" && (
           <StepShell
             title="Choose an AI provider"
             description="Bring your own key. Optional — match scoring, skill gaps and ATS analysis all work without one."
@@ -175,21 +222,26 @@ export function Onboarding() {
                 label="Try demo mode instead"
                 description="Explore every feature using clearly-labelled sample data. No API calls, no key needed."
                 onChange={async (demoMode) => {
-                  setSettings(await send({ type: 'UPDATE_SETTINGS', payload: { demoMode } }));
+                  setSettings(
+                    await send({
+                      type: "UPDATE_SETTINGS",
+                      payload: { demoMode },
+                    }),
+                  );
                 }}
               />
             </div>
 
             <div className="mt-6 flex gap-2">
-              <Button onClick={() => setStep('privacy')}>Continue</Button>
-              <Button variant="ghost" onClick={() => setStep('privacy')}>
+              <Button onClick={() => setStep("privacy")}>Continue</Button>
+              <Button variant="ghost" onClick={() => setStep("privacy")}>
                 Skip for now
               </Button>
             </div>
           </StepShell>
         )}
 
-        {step === 'privacy' && (
+        {step === "privacy" && (
           <StepShell
             title="Where your data lives"
             description="You're in guest mode. Nothing needs an account, and nothing is sent to us."
@@ -197,22 +249,28 @@ export function Onboarding() {
             <div className="space-y-3">
               <Card>
                 <CardBody>
-                  <p className="text-sm font-medium text-fg">Stored on this device only</p>
+                  <p className="text-sm font-medium text-fg">
+                    Stored on this device only
+                  </p>
                   <p className="mt-1 text-xs leading-relaxed text-fg-muted">
-                    Your resume text, job analyses, application tracker and API key live in this
-                    browser&rsquo;s extension storage. They are not synced and not sent to our servers.
-                    Clearing the extension&rsquo;s data removes them permanently.
+                    Your resume text, job analyses, application tracker and API
+                    key live in this browser&rsquo;s extension storage. They are
+                    not synced and not sent to our servers. Clearing the
+                    extension&rsquo;s data removes them permanently.
                   </p>
                 </CardBody>
               </Card>
 
               <Card>
                 <CardBody>
-                  <p className="text-sm font-medium text-fg">What reaches your AI provider</p>
+                  <p className="text-sm font-medium text-fg">
+                    What reaches your AI provider
+                  </p>
                   <p className="mt-1 text-xs leading-relaxed text-fg-muted">
-                    When you run analysis, tailoring, a cover letter or interview prep, the job
-                    description and your resume text are sent to the provider you chose, using your
-                    key. Nothing is sent when you are just browsing.
+                    When you run analysis, tailoring, a cover letter or
+                    interview prep, the job description and your resume text are
+                    sent to the provider you chose, using your key. Nothing is
+                    sent when you are just browsing.
                   </p>
                 </CardBody>
               </Card>
@@ -226,8 +284,10 @@ export function Onboarding() {
                     onChange={async (redactContactInfo) => {
                       setSettings(
                         await send({
-                          type: 'UPDATE_SETTINGS',
-                          payload: { privacy: { ...settings.privacy, redactContactInfo } },
+                          type: "UPDATE_SETTINGS",
+                          payload: {
+                            privacy: { ...settings.privacy, redactContactInfo },
+                          },
                         }),
                       );
                     }}
@@ -239,8 +299,10 @@ export function Onboarding() {
                     onChange={async (storeJobSnapshots) => {
                       setSettings(
                         await send({
-                          type: 'UPDATE_SETTINGS',
-                          payload: { privacy: { ...settings.privacy, storeJobSnapshots } },
+                          type: "UPDATE_SETTINGS",
+                          payload: {
+                            privacy: { ...settings.privacy, storeJobSnapshots },
+                          },
                         }),
                       );
                     }}
@@ -249,8 +311,8 @@ export function Onboarding() {
               </Card>
 
               <Alert tone="neutral">
-                We do not sell resume data and do not use it to train models. You can export or
-                delete everything at any time from Settings.
+                We do not sell resume data and do not use it to train models.
+                You can export or delete everything at any time from Settings.
               </Alert>
             </div>
 
@@ -260,7 +322,7 @@ export function Onboarding() {
           </StepShell>
         )}
 
-        {step === 'ready' && (
+        {step === "ready" && (
           <StepShell
             title="You're set up"
             description="Open any job listing and click the extension icon to analyze your match."
@@ -270,8 +332,9 @@ export function Onboarding() {
                 <CardBody className="flex items-start gap-3">
                   <Badge tone="strong">1</Badge>
                   <p className="text-xs leading-relaxed text-fg-muted">
-                    Browse to a job posting on any careers site — Greenhouse, Lever, Workday,
-                    LinkedIn, Ashby or a company&rsquo;s own page.
+                    Browse to a job posting on any careers site — Greenhouse,
+                    Lever, Workday, LinkedIn, Ashby or a company&rsquo;s own
+                    page.
                   </p>
                 </CardBody>
               </Card>
@@ -279,8 +342,9 @@ export function Onboarding() {
                 <CardBody className="flex items-start gap-3">
                   <Badge tone="strong">2</Badge>
                   <p className="text-xs leading-relaxed text-fg-muted">
-                    Click the extension icon. If the description isn&rsquo;t detected automatically,
-                    use &ldquo;Select it manually&rdquo;.
+                    Click the extension icon. If the description isn&rsquo;t
+                    detected automatically, use &ldquo;Select it
+                    manually&rdquo;.
                   </p>
                 </CardBody>
               </Card>
@@ -288,20 +352,25 @@ export function Onboarding() {
                 <CardBody className="flex items-start gap-3">
                   <Badge tone="strong">3</Badge>
                   <p className="text-xs leading-relaxed text-fg-muted">
-                    Analyze, tailor, save to your tracker, and export to Excel whenever you want.
+                    Analyze, tailor, save to your tracker, and export to Excel
+                    whenever you want.
                   </p>
                 </CardBody>
               </Card>
 
               <Alert tone="brand" title="Want it on more than one device?">
-                Creating a free account later syncs your resume versions, tracker and analytics to
-                the web dashboard. Everything keeps working without one.
+                Creating a free account later syncs your resume versions,
+                tracker and analytics to the web dashboard. Everything keeps
+                working without one.
               </Alert>
             </div>
 
             <div className="mt-6 flex gap-2">
               <Button onClick={() => window.close()}>Done</Button>
-              <Button variant="outline" onClick={() => chrome.runtime.openOptionsPage()}>
+              <Button
+                variant="outline"
+                onClick={() => chrome.runtime.openOptionsPage()}
+              >
                 Open settings
               </Button>
             </div>

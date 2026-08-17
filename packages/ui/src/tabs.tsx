@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
-import { cn } from './cn.ts';
+import type { ReactNode } from "react";
+import { cn } from "./cn.ts";
 
 export interface TabItem {
   id: string;
@@ -14,22 +14,27 @@ export function Tabs({
   active,
   onChange,
   className,
-  size = 'md',
+  size = "md",
 }: {
   items: TabItem[];
   active: string;
   onChange: (id: string) => void;
   className?: string;
-  size?: 'sm' | 'md';
+  size?: "sm" | "md";
 }) {
   return (
     <div
       role="tablist"
-      className={cn('flex gap-1 overflow-x-auto border-b border-border', className)}
+      className={cn(
+        "flex gap-1 overflow-x-auto border-b border-border",
+        className,
+      )}
       onKeyDown={(e) => {
         const idx = items.findIndex((i) => i.id === active);
-        if (e.key === 'ArrowRight') onChange(items[(idx + 1) % items.length]!.id);
-        if (e.key === 'ArrowLeft') onChange(items[(idx - 1 + items.length) % items.length]!.id);
+        if (e.key === "ArrowRight")
+          onChange(items[(idx + 1) % items.length]!.id);
+        if (e.key === "ArrowLeft")
+          onChange(items[(idx - 1 + items.length) % items.length]!.id);
       }}
     >
       {items.map((item) => {
@@ -44,11 +49,11 @@ export function Tabs({
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(item.id)}
             className={cn(
-              'shrink-0 border-b-2 font-medium transition-colors',
-              size === 'sm' ? 'px-2.5 pb-1.5 text-xs' : 'px-3 pb-2 text-sm',
+              "shrink-0 border-b-2 font-medium transition-colors",
+              size === "sm" ? "px-2.5 pb-1.5 text-xs" : "px-3 pb-2 text-sm",
               selected
-                ? 'border-brand text-fg'
-                : 'border-transparent text-fg-muted hover:text-fg',
+                ? "border-brand text-fg"
+                : "border-transparent text-fg-muted hover:text-fg",
             )}
           >
             {item.label}
@@ -64,10 +69,23 @@ export function Tabs({
   );
 }
 
-export function TabPanel({ id, active, children }: { id: string; active: string; children: ReactNode }) {
+export function TabPanel({
+  id,
+  active,
+  children,
+}: {
+  id: string;
+  active: string;
+  children: ReactNode;
+}) {
   if (id !== active) return null;
   return (
-    <div role="tabpanel" id={`panel-${id}`} aria-labelledby={`tab-${id}`} tabIndex={0}>
+    <div
+      role="tabpanel"
+      id={`panel-${id}`}
+      aria-labelledby={`tab-${id}`}
+      tabIndex={0}
+    >
       {children}
     </div>
   );

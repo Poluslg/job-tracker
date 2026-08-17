@@ -1,44 +1,43 @@
-import { z } from 'zod';
-import { AIProviderConfig } from './ai.ts';
-import { Id, IsoDate, Timestamped } from './common.ts';
+import { z } from "zod";
+import { AIProviderConfig } from "./ai.ts";
+import { Id, IsoDate, Timestamped } from "./common.ts";
 
-export const AuthMode = z.enum(['guest', 'account']);
+export const AuthMode = z.enum(["guest", "account"]);
 export type AuthMode = z.infer<typeof AuthMode>;
 
 export const User = Timestamped.extend({
   id: Id,
   email: z.string().email(),
-  name: z.string().default(''),
-  
-  authProvider: z.enum(['password', 'google', 'github']).default('password'),
+  name: z.string().default(""),
+
+  authProvider: z.enum(["password", "google", "github"]).default("password"),
 });
 export type User = z.infer<typeof User>;
 
 export const Session = z.object({
   userId: Id,
   email: z.string(),
-  name: z.string().default(''),
+  name: z.string().default(""),
   expiresAt: IsoDate,
 });
 export type Session = z.infer<typeof Session>;
 
 export const PrivacySettings = z.object({
-  
   syncEnabled: z.boolean().default(false),
-  
+
   redactContactInfo: z.boolean().default(true),
-  
+
   shareAnonymousUsage: z.boolean().default(false),
-  
+
   storeJobSnapshots: z.boolean().default(true),
 });
 export type PrivacySettings = z.infer<typeof PrivacySettings>;
 
 export const UiSettings = z.object({
-  theme: z.enum(['light', 'dark', 'system']).default('system'),
-  
+  theme: z.enum(["light", "dark", "system"]).default("system"),
+
   showFloatingButton: z.boolean().default(true),
-  
+
   autoAnalyze: z.boolean().default(false),
   compactPopup: z.boolean().default(false),
 });
@@ -56,12 +55,12 @@ export const ScoringWeights = z.object({
 export type ScoringWeights = z.infer<typeof ScoringWeights>;
 
 export const UserSettings = z.object({
-  authMode: AuthMode.default('guest'),
+  authMode: AuthMode.default("guest"),
   ai: AIProviderConfig.prefault({}),
   privacy: PrivacySettings.prefault({}),
   ui: UiSettings.prefault({}),
   scoring: ScoringWeights.prefault({}),
-  
+
   demoMode: z.boolean().default(false),
   onboardingCompletedAt: IsoDate.nullable().default(null),
 });

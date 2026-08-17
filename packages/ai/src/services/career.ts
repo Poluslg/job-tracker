@@ -12,8 +12,8 @@ import type {
   ScoringWeights,
   TailorChange,
   UserSettings,
-} from '@job-ai/types';
-import { AIError, nowIso } from '@job-ai/types';
+} from "@job-ai/types";
+import { AIError, nowIso } from "@job-ai/types";
 import {
   buildResumeSkillIndex,
   computeAnalysis,
@@ -21,7 +21,7 @@ import {
   extractRequirements,
   profileToPlainText,
   toAnalysisRecord,
-} from '@job-ai/core';
+} from "@job-ai/core";
 
 import {
   AICoverLetter,
@@ -30,19 +30,22 @@ import {
   AIMatchInsights,
   AIRequirements,
   AITailorResume,
-} from '../schemas/index.ts';
-import { coverLetterPrompt } from '../prompts/coverLetter.ts';
-import { interviewPrepPrompt } from '../prompts/interviewPrep.ts';
-import { jobExtractionPrompt, requirementsPrompt } from '../prompts/jobExtraction.ts';
-import { matchInsightsPrompt } from '../prompts/matchInsights.ts';
-import { tailorResumePrompt } from '../prompts/tailorResume.ts';
-import { redactContact } from '../prompts/shared.ts';
-import { runPrompt } from './runner.ts';
+} from "../schemas/index.ts";
+import { coverLetterPrompt } from "../prompts/coverLetter.ts";
+import { interviewPrepPrompt } from "../prompts/interviewPrep.ts";
+import {
+  jobExtractionPrompt,
+  requirementsPrompt,
+} from "../prompts/jobExtraction.ts";
+import { matchInsightsPrompt } from "../prompts/matchInsights.ts";
+import { tailorResumePrompt } from "../prompts/tailorResume.ts";
+import { redactContact } from "../prompts/shared.ts";
+import { runPrompt } from "./runner.ts";
 
 export interface CareerAIOptions {
   provider: AIProvider;
   settings: UserSettings;
-  
+
   onProgress?: (stage: string) => void;
 }
 
@@ -72,9 +75,11 @@ export class CareerAI {
     job: JobPosting,
     options: AnalyzeOptions,
   ): Promise<{ analysis: JobAnalysis; aiError: AIError | null }> {
-    this.onProgress('extracting');
+    this.onProgress("extracting");
 
-    let requirements = job.requirements.length ? job.requirements : extractRequirements(job.description);
+    let requirements = job.requirements.length
+      ? job.requirements
+      : extractRequirements(job.description);
     let aiError: AIError | null = null;
 
     if (options.useAI) {
@@ -93,24 +98,25 @@ export class CareerAI {
 
         if (refined.data.requirements.length >= 3) {
           requirements = refined.data.requirements.map((r) => ({
-            id: createId('req'),
+            id: createId("req"),
             text: r.text,
             kind: r.kind,
             skills: r.skills,
             yearsRequired: r.yearsRequired,
-            confidence: r.kind === 'signal' ? ('low' as const) : ('high' as const),
+            confidence:
+              r.kind === "signal" ? ("low" as const) : ("high" as const),
           }));
         }
       } catch (err) {
-        
         aiError = asAIError(err);
       }
     }
 
-    this.onProgress('reading-resume');
-    const resumeText = resume.origin.rawText || profileToPlainText(resume.profile);
+    this.onProgress("reading-resume");
+    const resumeText =
+      resume.origin.rawText || profileToPlainText(resume.profile);
 
-    this.onProgress('comparing');
+    this.onProgress("comparing");
     const computed = computeAnalysis({
       profile: resume.profile,
       resumeText,
@@ -119,10 +125,10 @@ export class CareerAI {
     });
 
     const analysis = toAnalysisRecord(computed, job.id, resume.id);
-    analysis.mode = 'local';
+    analysis.mode = "local";
 
     if (options.useAI && !aiError) {
-      this.onProgress('recommendations');
+      this.onProgress("recommendations");
       try {
         const insights = await runPrompt(
           this.provider,
@@ -134,12 +140,14 @@ export class CareerAI {
             description: this.prepare(job.description),
             resumeText: this.prepare(resumeText),
             score: analysis.score.overall,
-            strongSkills: analysis.skills.filter((s) => s.quality === 'strong').map((s) => s.skill),
+            strongSkills: analysis.skills
+              .filter((s) => s.quality === "strong")
+              .map((s) => s.skill),
             partialSkills: analysis.skills
-              .filter((s) => s.quality === 'partial')
+              .filter((s) => s.quality === "partial")
               .map((s) => ({ skill: s.skill, rationale: s.rationale })),
             missingRequired: analysis.skills
-              .filter((s) => s.quality === 'missing' && s.required)
+              .filter((s) => s.quality === "missing" && s.required)
               .map((s) => s.skill),
             experienceNote: analysis.experience.note,
             atsCoverage: analysis.ats.coverage,
@@ -149,39 +157,39 @@ export class CareerAI {
 
         analysis.concerns = [
           ...analysis.concerns,
-          ...insights.data.concerns.map((c) => ({ text: c.text, severity: c.severity, inferred: true })),
+          ...insights.data.concerns.map((c) => ({
+            text: c.text,
+            severity: c.severity,
+            inferred: true,
+          })),
           ...insights.data.hiddenSignals.map((s) => ({
             text: `Possible expectation (AI interpretation, not stated in the posting): ${s.text}`,
-            severity: 'low' as const,
+            severity: "low" as const,
             inferred: true,
           })),
         ];
 
         analysis.recommendations = [
           ...analysis.recommendations,
-          ...insights.data.recommendations.map(
-            (r): Recommendation => ({
-              id: createId('rec'),
-              kind: 'improve-bullet',
-              title: r.title,
-              detail: r.detail,
-              priority: r.priority,
-              needsUserConfirmation: r.needsUserConfirmation,
-            }),
-          ),
-          ...insights.data.terminologyBridges.map(
-            (t): Recommendation => ({
-              id: createId('rec'),
-              kind: 'add-terminology',
-              title: `Use the posting's wording: "${t.jobTerm}"`,
-              detail: `Your resume describes this as "${t.resumeTerm}". ${t.note} Only make this change if it still describes what you actually did.`,
-              priority: 'medium',
-              needsUserConfirmation: true,
-            }),
-          ),
+          ...insights.data.recommendations.map((r): Recommendation => ({
+            id: createId("rec"),
+            kind: "improve-bullet",
+            title: r.title,
+            detail: r.detail,
+            priority: r.priority,
+            needsUserConfirmation: r.needsUserConfirmation,
+          })),
+          ...insights.data.terminologyBridges.map((t): Recommendation => ({
+            id: createId("rec"),
+            kind: "add-terminology",
+            title: `Use the posting's wording: "${t.jobTerm}"`,
+            detail: `Your resume describes this as "${t.resumeTerm}". ${t.note} Only make this change if it still describes what you actually did.`,
+            priority: "medium",
+            needsUserConfirmation: true,
+          })),
         ];
 
-        analysis.mode = this.provider.id === 'mock' ? 'mock' : 'ai-assisted';
+        analysis.mode = this.provider.id === "mock" ? "mock" : "ai-assisted";
         analysis.modelUsed = insights.usage.model;
         analysis.promptVersion = insights.promptVersion;
       } catch (err) {
@@ -189,7 +197,7 @@ export class CareerAI {
       }
     }
 
-    this.onProgress('done');
+    this.onProgress("done");
     return { analysis, aiError };
   }
 
@@ -215,8 +223,14 @@ export class CareerAI {
       location: result.data.location,
       employmentType: result.data.employmentType,
       arrangement: result.data.arrangement,
-      salary: { min: null, max: null, currency: '', period: 'unknown', raw: result.data.salaryText },
-      source: 'ai',
+      salary: {
+        min: null,
+        max: null,
+        currency: "",
+        period: "unknown",
+        raw: result.data.salaryText,
+      },
+      source: "ai",
     };
   }
 
@@ -224,9 +238,18 @@ export class CareerAI {
     resume: Resume,
     job: JobPosting,
     analysis: JobAnalysis,
-    opts: { versionName: string; acceptedRecommendationIds: string[]; signal?: AbortSignal },
-  ): Promise<{ version: ResumeVersion; changes: TailorChange[]; unverifiable: string[] }> {
-    const resumeText = resume.origin.rawText || profileToPlainText(resume.profile);
+    opts: {
+      versionName: string;
+      acceptedRecommendationIds: string[];
+      signal?: AbortSignal;
+    },
+  ): Promise<{
+    version: ResumeVersion;
+    changes: TailorChange[];
+    unverifiable: string[];
+  }> {
+    const resumeText =
+      resume.origin.rawText || profileToPlainText(resume.profile);
     const accepted = analysis.recommendations
       .filter((r) => opts.acceptedRecommendationIds.includes(r.id))
       .map((r) => `${r.title}: ${r.detail}`);
@@ -241,15 +264,19 @@ export class CareerAI {
         description: this.prepare(job.description),
         resumeText: this.prepare(resumeText),
         currentSummary: resume.profile.summary,
-        strongSkills: analysis.skills.filter((s) => s.quality === 'strong').map((s) => s.skill),
-        partialSkills: analysis.skills.filter((s) => s.quality === 'partial').map((s) => s.skill),
+        strongSkills: analysis.skills
+          .filter((s) => s.quality === "strong")
+          .map((s) => s.skill),
+        partialSkills: analysis.skills
+          .filter((s) => s.quality === "partial")
+          .map((s) => s.skill),
         acceptedRecommendations: accepted,
       },
       { ...(opts.signal ? { signal: opts.signal } : {}) },
     );
 
     const changes: TailorChange[] = result.data.changes.map((c) => ({
-      id: createId('chg'),
+      id: createId("chg"),
       section: c.section,
       original: c.original,
       suggested: c.suggested,
@@ -259,10 +286,10 @@ export class CareerAI {
 
     const now = nowIso();
     const version: ResumeVersion = {
-      id: createId('ver'),
+      id: createId("ver"),
       resumeId: resume.id,
       name: opts.versionName,
-      kind: 'tailored',
+      kind: "tailored",
       jobId: job.id,
       profile: resume.profile,
       content: profileToPlainText(resume.profile),
@@ -277,12 +304,22 @@ export class CareerAI {
   async generateCoverLetter(
     resume: Resume,
     job: JobPosting,
-    opts: { tone: CoverLetterTone; extraContext?: string; resumeVersionId?: string | null; signal?: AbortSignal },
+    opts: {
+      tone: CoverLetterTone;
+      extraContext?: string;
+      resumeVersionId?: string | null;
+      signal?: AbortSignal;
+    },
   ): Promise<CoverLetter> {
-    const resumeText = resume.origin.rawText || profileToPlainText(resume.profile);
+    const resumeText =
+      resume.origin.rawText || profileToPlainText(resume.profile);
     const index = buildResumeSkillIndex(resume.profile, resumeText);
-    const jobSkills = extractRequirements(job.description).flatMap((r) => r.skills);
-    const strongSkills = [...new Set(jobSkills.filter((s) => index.skills.has(s)))];
+    const jobSkills = extractRequirements(job.description).flatMap(
+      (r) => r.skills,
+    );
+    const strongSkills = [
+      ...new Set(jobSkills.filter((s) => index.skills.has(s))),
+    ];
 
     const result = await runPrompt(
       this.provider,
@@ -297,14 +334,14 @@ export class CareerAI {
         candidateName: resume.profile.contact.name,
         tone: opts.tone,
         strongSkills,
-        extraContext: opts.extraContext ?? '',
+        extraContext: opts.extraContext ?? "",
       },
       { temperature: 0.5, ...(opts.signal ? { signal: opts.signal } : {}) },
     );
 
     const now = nowIso();
     return {
-      id: createId('cl'),
+      id: createId("cl"),
       jobId: job.id,
       resumeVersionId: opts.resumeVersionId ?? null,
       company: job.company,
@@ -324,10 +361,16 @@ export class CareerAI {
     analysis: JobAnalysis | null,
     opts: { applicationId?: string | null; signal?: AbortSignal } = {},
   ): Promise<InterviewPrep> {
-    const resumeText = resume.origin.rawText || profileToPlainText(resume.profile);
+    const resumeText =
+      resume.origin.rawText || profileToPlainText(resume.profile);
     const missingRequired =
-      analysis?.skills.filter((s) => s.quality === 'missing' && s.required).map((s) => s.skill) ?? [];
-    const partialSkills = analysis?.skills.filter((s) => s.quality === 'partial').map((s) => s.skill) ?? [];
+      analysis?.skills
+        .filter((s) => s.quality === "missing" && s.required)
+        .map((s) => s.skill) ?? [];
+    const partialSkills =
+      analysis?.skills
+        .filter((s) => s.quality === "partial")
+        .map((s) => s.skill) ?? [];
 
     const result = await runPrompt(
       this.provider,
@@ -341,19 +384,25 @@ export class CareerAI {
         missingRequired,
         partialSkills,
       },
-      { maxOutputTokens: 6000, ...(opts.signal ? { signal: opts.signal } : {}) },
+      {
+        maxOutputTokens: 6000,
+        ...(opts.signal ? { signal: opts.signal } : {}),
+      },
     );
 
     const now = nowIso();
     return {
-      id: createId('prep'),
+      id: createId("prep"),
       jobId: job.id,
       applicationId: opts.applicationId ?? null,
-      questions: result.data.questions.map((q) => ({ id: createId('q'), ...q })),
+      questions: result.data.questions.map((q) => ({
+        id: createId("q"),
+        ...q,
+      })),
       talkingPoints: result.data.talkingPoints,
       questionsToAsk: result.data.questionsToAsk,
       studyTopics: result.data.studyTopics,
-      notes: '',
+      notes: "",
       completed: [],
       createdAt: now,
       updatedAt: now,
@@ -378,15 +427,21 @@ function textSlots(profile: ResumeProfile): TextSlot[] {
     }
   }
   for (const proj of profile.projects) {
-    slots.push({ read: () => proj.description, write: (v) => (proj.description = v) });
+    slots.push({
+      read: () => proj.description,
+      write: (v) => (proj.description = v),
+    });
     proj.highlights.forEach((_, i) => {
-      slots.push({ read: () => proj.highlights[i]!, write: (v) => (proj.highlights[i] = v) });
+      slots.push({
+        read: () => proj.highlights[i]!,
+        write: (v) => (proj.highlights[i] = v),
+      });
     });
   }
   return slots;
 }
 
-const squash = (s: string) => s.replace(/\s+/g, ' ').trim().toLowerCase();
+const squash = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
 
 export function applyTailorChanges(
   profile: ResumeProfile,
@@ -400,7 +455,6 @@ export function applyTailorChanges(
 
   for (const change of changes.filter((c) => acceptedIds.includes(c.id))) {
     if (!change.original.trim()) {
-      
       if (/summary/i.test(change.section)) {
         next.summary = change.suggested;
         applied++;
@@ -413,7 +467,9 @@ export function applyTailorChanges(
     let candidates = slots.filter((s) => squash(s.read()) === target);
 
     if (candidates.length === 0) {
-      candidates = slots.filter((s) => s.read().trim() && squash(s.read()).includes(target));
+      candidates = slots.filter(
+        (s) => s.read().trim() && squash(s.read()).includes(target),
+      );
     }
 
     if (candidates.length !== 1) {
@@ -426,11 +482,14 @@ export function applyTailorChanges(
     if (squash(current) === target) {
       slot.write(change.suggested);
     } else {
-      
-      const idx = current.toLowerCase().indexOf(change.original.trim().toLowerCase());
+      const idx = current
+        .toLowerCase()
+        .indexOf(change.original.trim().toLowerCase());
       slot.write(
         idx >= 0
-          ? current.slice(0, idx) + change.suggested + current.slice(idx + change.original.trim().length)
+          ? current.slice(0, idx) +
+              change.suggested +
+              current.slice(idx + change.original.trim().length)
           : change.suggested,
       );
     }
@@ -440,7 +499,10 @@ export function applyTailorChanges(
   return { profile: next, applied, skipped };
 }
 
-export function applySkillOrder(profile: ResumeProfile, order: string[]): ResumeProfile {
+export function applySkillOrder(
+  profile: ResumeProfile,
+  order: string[],
+): ResumeProfile {
   if (order.length === 0) return profile;
   const rank = new Map(order.map((s, i) => [s.toLowerCase(), i]));
   return {
@@ -454,5 +516,7 @@ export function applySkillOrder(profile: ResumeProfile, order: string[]): Resume
 }
 
 function asAIError(err: unknown): AIError {
-  return err instanceof AIError ? err : new AIError('unknown', 'The AI request failed.');
+  return err instanceof AIError
+    ? err
+    : new AIError("unknown", "The AI request failed.");
 }

@@ -3,7 +3,7 @@ export interface KeyValueAdapter {
   set<T>(key: string, value: T): Promise<void>;
   remove(key: string): Promise<void>;
   keys(): Promise<string[]>;
-  
+
   usage?(): Promise<number>;
 }
 
@@ -28,7 +28,7 @@ export class WebStorageAdapter implements KeyValueAdapter {
   private readonly storage: Storage;
   private readonly prefix: string;
 
-  constructor(storage: Storage, prefix = 'jobai:') {
+  constructor(storage: Storage, prefix = "jobai:") {
     this.storage = storage;
     this.prefix = prefix;
   }
@@ -39,7 +39,6 @@ export class WebStorageAdapter implements KeyValueAdapter {
     try {
       return JSON.parse(raw) as T;
     } catch {
-      
       this.storage.removeItem(this.prefix + key);
       return null;
     }
@@ -49,7 +48,7 @@ export class WebStorageAdapter implements KeyValueAdapter {
       this.storage.setItem(this.prefix + key, JSON.stringify(value));
     } catch (err) {
       throw new StorageQuotaError(
-        'Browser storage is full. Export and clear old applications to free space.',
+        "Browser storage is full. Export and clear old applications to free space.",
         { cause: err },
       );
     }
@@ -70,7 +69,7 @@ export class WebStorageAdapter implements KeyValueAdapter {
 export class StorageQuotaError extends Error {
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
-    this.name = 'StorageQuotaError';
+    this.name = "StorageQuotaError";
   }
 }
 
@@ -93,6 +92,8 @@ export class NamespacedAdapter implements KeyValueAdapter {
   }
   async keys() {
     const all = await this.inner.keys();
-    return all.filter((k) => k.startsWith(`${this.ns}:`)).map((k) => k.slice(this.ns.length + 1));
+    return all
+      .filter((k) => k.startsWith(`${this.ns}:`))
+      .map((k) => k.slice(this.ns.length + 1));
   }
 }

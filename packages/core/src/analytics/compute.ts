@@ -1,28 +1,38 @@
-import type { AnalyticsResponse, Application, ApplicationStatus, JobAnalysis } from '@job-ai/types';
-import { FUNNEL_STAGES, STATUS_LABELS } from '@job-ai/types';
-import { round } from '../util/text.ts';
+import type {
+  AnalyticsResponse,
+  Application,
+  ApplicationStatus,
+  JobAnalysis,
+} from "@job-ai/types";
+import { FUNNEL_STAGES, STATUS_LABELS } from "@job-ai/types";
+import { round } from "../util/text.ts";
 
 const ADVANCED: ApplicationStatus[] = [
-  'recruiter-screen',
-  'interview',
-  'technical-round',
-  'final-round',
-  'offer',
+  "recruiter-screen",
+  "interview",
+  "technical-round",
+  "final-round",
+  "offer",
 ];
 
 const STAGE_ORDER: ApplicationStatus[] = [
-  'saved',
-  'preparing',
-  'applied',
-  'recruiter-screen',
-  'interview',
-  'technical-round',
-  'final-round',
-  'offer',
+  "saved",
+  "preparing",
+  "applied",
+  "recruiter-screen",
+  "interview",
+  "technical-round",
+  "final-round",
+  "offer",
 ];
 
 function furthestStageIndex(app: Application): number {
-  const seen = [app.status, ...app.timeline.map((e) => e.to).filter((s): s is ApplicationStatus => s !== null)];
+  const seen = [
+    app.status,
+    ...app.timeline
+      .map((e) => e.to)
+      .filter((s): s is ApplicationStatus => s !== null),
+  ];
   return Math.max(-1, ...seen.map((s) => STAGE_ORDER.indexOf(s)));
 }
 
@@ -33,8 +43,8 @@ function reached(app: Application, stage: ApplicationStatus): boolean {
 
 function weekKey(iso: string): string {
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  
+  if (Number.isNaN(d.getTime())) return "";
+
   const day = (d.getUTCDay() + 6) % 7;
   d.setUTCDate(d.getUTCDate() - day);
   return d.toISOString().slice(0, 10);
@@ -48,17 +58,21 @@ export function computeAnalytics(
   const now = Date.now();
   const weekAgo = now - 7 * 24 * 3600 * 1000;
 
-  const applied = applications.filter((a) => reached(a, 'applied'));
-  const interviews = applications.filter((a) => reached(a, 'interview'));
-  const offers = applications.filter((a) => a.status === 'offer' || reached(a, 'offer'));
-  const rejections = applications.filter((a) => a.status === 'rejected');
+  const applied = applications.filter((a) => reached(a, "applied"));
+  const interviews = applications.filter((a) => reached(a, "interview"));
+  const offers = applications.filter(
+    (a) => a.status === "offer" || reached(a, "offer"),
+  );
+  const rejections = applications.filter((a) => a.status === "rejected");
 
   const thisWeek = applications.filter((a) => {
     const t = new Date(a.appliedAt ?? a.discoveredAt).getTime();
     return !Number.isNaN(t) && t >= weekAgo;
   });
 
-  const scores = applications.map((a) => a.matchScore).filter((s): s is number => s !== null);
+  const scores = applications
+    .map((a) => a.matchScore)
+    .filter((s): s is number => s !== null);
   const averageMatchScore = scores.length
     ? round(scores.reduce((a, b) => a + b, 0) / scores.length)
     : null;
@@ -75,23 +89,30 @@ export function computeAnalytics(
   }
   const weekly = weeks.map((week) => ({
     week,
-    applications: applied.filter((a) => weekKey(a.appliedAt ?? a.discoveredAt) === week).length,
-    interviews: interviews.filter((a) => eventWeek(a, ADVANCED) === week).length,
-    offers: offers.filter((a) => eventWeek(a, ['offer']) === week).length,
-    rejections: rejections.filter((a) => eventWeek(a, ['rejected']) === week).length,
+    applications: applied.filter(
+      (a) => weekKey(a.appliedAt ?? a.discoveredAt) === week,
+    ).length,
+    interviews: interviews.filter((a) => eventWeek(a, ADVANCED) === week)
+      .length,
+    offers: offers.filter((a) => eventWeek(a, ["offer"]) === week).length,
+    rejections: rejections.filter((a) => eventWeek(a, ["rejected"]) === week)
+      .length,
   }));
 
   const buckets = [
-    { bucket: '0-39', min: 0, max: 39 },
-    { bucket: '40-59', min: 40, max: 59 },
-    { bucket: '60-79', min: 60, max: 79 },
-    { bucket: '80-100', min: 80, max: 100 },
+    { bucket: "0-39", min: 0, max: 39 },
+    { bucket: "40-59", min: 40, max: 59 },
+    { bucket: "60-79", min: 60, max: 79 },
+    { bucket: "80-100", min: 80, max: 100 },
   ];
   const scoreVsOutcome = buckets.map((b) => {
     const inBucket = applied.filter(
-      (a) => a.matchScore !== null && a.matchScore >= b.min && a.matchScore <= b.max,
+      (a) =>
+        a.matchScore !== null && a.matchScore >= b.min && a.matchScore <= b.max,
     );
-    const advanced = inBucket.filter((a) => ADVANCED.some((s) => reached(a, s))).length;
+    const advanced = inBucket.filter((a) =>
+      ADVANCED.some((s) => reached(a, s)),
+    ).length;
     return {
       bucket: b.bucket,
       total: inBucket.length,
@@ -100,7 +121,9 @@ export function computeAnalytics(
     };
   });
 
-  const topCompanies = topCounts(applications.map((a) => a.company).filter(Boolean));
+  const topCompanies = topCounts(
+    applications.map((a) => a.company).filter(Boolean),
+  );
   const topTitles = topCounts(applications.map((a) => a.title).filter(Boolean));
 
   const gapCounts = new Map<string, number>();
@@ -109,7 +132,7 @@ export function computeAnalytics(
     analysedJobs.add(analysis.jobId);
     const seen = new Set<string>();
     for (const m of analysis.skills) {
-      if (m.quality === 'missing' && m.required && !seen.has(m.skill)) {
+      if (m.quality === "missing" && m.required && !seen.has(m.skill)) {
         seen.add(m.skill);
         gapCounts.set(m.skill, (gapCounts.get(m.skill) ?? 0) + 1);
       }
@@ -129,7 +152,12 @@ export function computeAnalytics(
     .filter((a) => a.matchScore !== null)
     .sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0))
     .slice(0, 5)
-    .map((a) => ({ id: a.id, company: a.company, title: a.title, score: a.matchScore ?? 0 }));
+    .map((a) => ({
+      id: a.id,
+      company: a.company,
+      title: a.title,
+      score: a.matchScore ?? 0,
+    }));
 
   return {
     totals: {
@@ -141,15 +169,20 @@ export function computeAnalytics(
       savedJobs: savedJobCount,
     },
     averageMatchScore,
-    
+
     responseRate: applied.length
       ? round(
-          (applied.filter((a) => ADVANCED.some((s) => reached(a, s)) || a.status === 'rejected').length /
+          (applied.filter(
+            (a) =>
+              ADVANCED.some((s) => reached(a, s)) || a.status === "rejected",
+          ).length /
             applied.length) *
             100,
         )
       : 0,
-    interviewRate: applied.length ? round((interviews.length / applied.length) * 100) : 0,
+    interviewRate: applied.length
+      ? round((interviews.length / applied.length) * 100)
+      : 0,
     funnel,
     weekly,
     scoreVsOutcome,
@@ -167,7 +200,10 @@ function eventWeek(app: Application, statuses: ApplicationStatus[]): string {
   return weekKey(event?.at ?? app.updatedAt);
 }
 
-function topCounts(values: string[], limit = 8): Array<{ name: string; count: number }> {
+function topCounts(
+  values: string[],
+  limit = 8,
+): Array<{ name: string; count: number }> {
   const m = new Map<string, number>();
   for (const v of values) m.set(v, (m.get(v) ?? 0) + 1);
   return [...m.entries()]

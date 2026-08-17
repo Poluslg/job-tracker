@@ -1,5 +1,5 @@
-import { CardSkeleton, PageHeaderSkeleton } from '@/components/Skeletons';
-import { Skeleton } from '@job-ai/ui';
+import { CardSkeleton, PageHeaderSkeleton } from "@/components/Skeletons";
+import { Skeleton } from "@job-ai/ui";
 
 export default function ResumeLoading() {
   return (

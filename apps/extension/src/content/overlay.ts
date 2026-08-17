@@ -1,4 +1,4 @@
-const HOST_ID = 'job-ai-copilot-root';
+const HOST_ID = "job-ai-copilot-root";
 
 const STYLES = `
 :host { all: initial; }
@@ -50,11 +50,11 @@ let root: ShadowRoot | null = null;
 
 function ensureRoot(): ShadowRoot {
   if (root && host?.isConnected) return root;
-  host = document.createElement('div');
+  host = document.createElement("div");
   host.id = HOST_ID;
-  
-  root = host.attachShadow({ mode: 'closed' });
-  const style = document.createElement('style');
+
+  root = host.attachShadow({ mode: "closed" });
+  const style = document.createElement("style");
   style.textContent = STYLES;
   root.append(style);
   document.documentElement.append(host);
@@ -75,29 +75,29 @@ export interface FabOptions {
 
 export function renderFab(options: FabOptions): void {
   const shadow = ensureRoot();
-  shadow.querySelector('.fab')?.remove();
+  shadow.querySelector(".fab")?.remove();
 
-  const button = document.createElement('button');
-  button.className = 'fab';
-  button.type = 'button';
-  button.setAttribute('aria-label', options.label);
+  const button = document.createElement("button");
+  button.className = "fab";
+  button.type = "button";
+  button.setAttribute("aria-label", options.label);
 
-  const dot = document.createElement('span');
-  dot.className = options.detected ? 'dot' : 'dot warn';
-  const text = document.createElement('span');
+  const dot = document.createElement("span");
+  dot.className = options.detected ? "dot" : "dot warn";
+  const text = document.createElement("span");
   text.textContent = options.label;
 
   button.append(dot, text);
-  button.addEventListener('click', options.onClick);
+  button.addEventListener("click", options.onClick);
   shadow.append(button);
 }
 
 export function showToast(message: string, ms = 4000): void {
   const shadow = ensureRoot();
-  shadow.querySelector('.toast')?.remove();
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.setAttribute('role', 'status');
+  shadow.querySelector(".toast")?.remove();
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.setAttribute("role", "status");
   el.textContent = message;
   shadow.append(el);
   setTimeout(() => el.remove(), ms);
@@ -109,23 +109,27 @@ export function isPicking(): boolean {
   return pickerCleanup !== null;
 }
 
-export function startManualSelection(onPick: (text: string) => void, onCancel: () => void): void {
+export function startManualSelection(
+  onPick: (text: string) => void,
+  onCancel: () => void,
+): void {
   cancelManualSelection();
   const shadow = ensureRoot();
 
-  const bar = document.createElement('div');
-  bar.className = 'picker-bar';
-  const label = document.createElement('span');
-  label.textContent = 'Click the block of text that contains the job description.';
-  const actions = document.createElement('span');
-  const cancel = document.createElement('button');
-  cancel.textContent = 'Cancel (Esc)';
+  const bar = document.createElement("div");
+  bar.className = "picker-bar";
+  const label = document.createElement("span");
+  label.textContent =
+    "Click the block of text that contains the job description.";
+  const actions = document.createElement("span");
+  const cancel = document.createElement("button");
+  cancel.textContent = "Cancel (Esc)";
   actions.append(cancel);
   bar.append(label, actions);
 
-  const highlight = document.createElement('div');
-  highlight.className = 'picker-highlight';
-  highlight.style.display = 'none';
+  const highlight = document.createElement("div");
+  highlight.className = "picker-highlight";
+  highlight.style.display = "none";
 
   shadow.append(bar, highlight);
 
@@ -134,16 +138,20 @@ export function startManualSelection(onPick: (text: string) => void, onCancel: (
   const onMove = (e: MouseEvent) => {
     const el = document.elementFromPoint(e.clientX, e.clientY);
     if (!el || el.id === HOST_ID) return;
-    
+
     let candidate: Element | null = el;
-    while (candidate && (candidate.textContent ?? '').trim().length < 200 && candidate.parentElement) {
+    while (
+      candidate &&
+      (candidate.textContent ?? "").trim().length < 200 &&
+      candidate.parentElement
+    ) {
       candidate = candidate.parentElement;
     }
     if (!candidate || candidate === current) return;
     current = candidate;
     const rect = candidate.getBoundingClientRect();
     Object.assign(highlight.style, {
-      display: 'block',
+      display: "block",
       top: `${rect.top}px`,
       left: `${rect.left}px`,
       width: `${rect.width}px`,
@@ -154,35 +162,35 @@ export function startManualSelection(onPick: (text: string) => void, onCancel: (
   const onClick = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const text = (current?.textContent ?? '').trim();
+    const text = (current?.textContent ?? "").trim();
     cancelManualSelection();
     if (text.length > 100) onPick(text);
     else {
-      showToast('That selection was too short. Try a larger block of text.');
+      showToast("That selection was too short. Try a larger block of text.");
       onCancel();
     }
   };
 
   const onKey = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       cancelManualSelection();
       onCancel();
     }
   };
 
-  cancel.addEventListener('click', () => {
+  cancel.addEventListener("click", () => {
     cancelManualSelection();
     onCancel();
   });
 
-  document.addEventListener('mousemove', onMove, true);
-  document.addEventListener('click', onClick, true);
-  document.addEventListener('keydown', onKey, true);
+  document.addEventListener("mousemove", onMove, true);
+  document.addEventListener("click", onClick, true);
+  document.addEventListener("keydown", onKey, true);
 
   pickerCleanup = () => {
-    document.removeEventListener('mousemove', onMove, true);
-    document.removeEventListener('click', onClick, true);
-    document.removeEventListener('keydown', onKey, true);
+    document.removeEventListener("mousemove", onMove, true);
+    document.removeEventListener("click", onClick, true);
+    document.removeEventListener("keydown", onKey, true);
     bar.remove();
     highlight.remove();
     pickerCleanup = null;

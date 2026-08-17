@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useCallback, useRef, useState } from 'react';
-import type { Resume, ResumeProfile } from '@job-ai/types';
+import { useCallback, useRef, useState } from "react";
+import type { Resume, ResumeProfile } from "@job-ai/types";
 import {
   Alert,
   Badge,
@@ -13,23 +13,26 @@ import {
   Spinner,
   Textarea,
   useToast,
-} from '@job-ai/ui';
-import {  Plus, Trash2, Upload, X } from 'lucide-react';
-import { errorMessage, patch, post } from '@/lib/api';
-import { PageHeader } from '@/components/PageHeader';
-import { extractTextFromFile } from './extractTextFromFile';
-import { ProfileEditor } from './profileEditor';
+} from "@job-ai/ui";
+import { Plus, Trash2, Upload, X } from "lucide-react";
+import { errorMessage, patch, post } from "@/lib/api";
+import { PageHeader } from "@/components/PageHeader";
+import { extractTextFromFile } from "./extractTextFromFile";
+import { ProfileEditor } from "./profileEditor";
 
-type FileStatus = 'idle' | 'reading' | 'uploading';
+type FileStatus = "idle" | "reading" | "uploading";
 
-
-export function ResumeManager({ initialResumes }: { initialResumes: Resume[] }) {
+export function ResumeManager({
+  initialResumes,
+}: {
+  initialResumes: Resume[];
+}) {
   const [resumes, setResumes] = useState(initialResumes);
-  const [text, setText] = useState('');
-  const [fileStatus, setFileStatus] = useState<FileStatus>('idle');
+  const [text, setText] = useState("");
+  const [fileStatus, setFileStatus] = useState<FileStatus>("idle");
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [tab, setTab] = useState<'upload' | 'paste'>('upload');
+  const [tab, setTab] = useState<"upload" | "paste">("upload");
   const [isUploadingNew, setIsUploadingNew] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -38,64 +41,79 @@ export function ResumeManager({ initialResumes }: { initialResumes: Resume[] }) 
 
   const handleFile = useCallback(
     async (file: File) => {
-      const ext = file.name.split('.').pop()?.toLowerCase();
-      if (!['pdf', 'docx', 'txt'].includes(ext ?? '')) {
-        toast('Unsupported file type. Please use PDF, DOCX, or TXT.', 'error');
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (!["pdf", "docx", "txt"].includes(ext ?? "")) {
+        toast("Unsupported file type. Please use PDF, DOCX, or TXT.", "error");
         return;
       }
       setSelectedFile(file);
-      setFileStatus('reading');
+      setFileStatus("reading");
       try {
         const extractedText = await extractTextFromFile(file);
         if (extractedText.trim().length < 50) {
-          toast('The file appears to be empty or could not be read.', 'error');
-          setFileStatus('idle');
+          toast("The file appears to be empty or could not be read.", "error");
+          setFileStatus("idle");
           return;
         }
-        setFileStatus('uploading');
-        const result = await post<{ resume: Resume; usedAI?: boolean }>('/api/resume/parse', {
-          fileName: file.name,
-          fileType: ext as 'pdf' | 'docx' | 'txt',
-          text: extractedText,
-          useAI: true,
-        });
-        console.log("result",result)
-        setResumes((prev) => [...prev.map((r) => ({ ...r, isDefault: false })), result.resume]);
+        setFileStatus("uploading");
+        const result = await post<{ resume: Resume; usedAI?: boolean }>(
+          "/api/resume/parse",
+          {
+            fileName: file.name,
+            fileType: ext as "pdf" | "docx" | "txt",
+            text: extractedText,
+            useAI: true,
+          },
+        );
+        console.log("result", result);
+        setResumes((prev) => [
+          ...prev.map((r) => ({ ...r, isDefault: false })),
+          result.resume,
+        ]);
         setSelectedFile(null);
         setIsUploadingNew(false);
         const msg = result.usedAI
-          ? 'Resume parsed with AI — all fields auto-filled. Review them below.'
-          : 'Resume uploaded. Please review and correct the parsed fields.';
-        toast(msg, 'success');
+          ? "Resume parsed with AI — all fields auto-filled. Review them below."
+          : "Resume uploaded. Please review and correct the parsed fields.";
+        toast(msg, "success");
       } catch (err) {
-        toast(errorMessage(err, 'Could not read or upload that file.'), 'error');
+        toast(
+          errorMessage(err, "Could not read or upload that file."),
+          "error",
+        );
       } finally {
-        setFileStatus('idle');
+        setFileStatus("idle");
       }
     },
     [toast],
   );
 
   const uploadText = async () => {
-    setFileStatus('uploading');
+    setFileStatus("uploading");
     try {
-      const result = await post<{ resume: Resume; usedAI?: boolean }>('/api/resume/parse', {
-        fileName: 'pasted-resume.txt',
-        fileType: 'txt',
-        text,
-        useAI: true,
-      });
-      setResumes((prev) => [...prev.map((r) => ({ ...r, isDefault: false })), result.resume]);
-      setText('');
+      const result = await post<{ resume: Resume; usedAI?: boolean }>(
+        "/api/resume/parse",
+        {
+          fileName: "pasted-resume.txt",
+          fileType: "txt",
+          text,
+          useAI: true,
+        },
+      );
+      setResumes((prev) => [
+        ...prev.map((r) => ({ ...r, isDefault: false })),
+        result.resume,
+      ]);
+      setText("");
       setIsUploadingNew(false);
       const msg = result.usedAI
-        ? 'Resume parsed with AI — all fields auto-filled. Review them below.'
-        : 'Resume saved. Review the parsed fields below.';
-      toast(msg, 'success');
+        ? "Resume parsed with AI — all fields auto-filled. Review them below."
+        : "Resume saved. Review the parsed fields below.";
+      toast(msg, "success");
     } catch (err) {
-      toast(errorMessage(err, 'Could not save that resume.'), 'error');
+      toast(errorMessage(err, "Could not save that resume."), "error");
     } finally {
-      setFileStatus('idle');
+      setFileStatus("idle");
     }
   };
 
@@ -113,7 +131,7 @@ export function ResumeManager({ initialResumes }: { initialResumes: Resume[] }) 
     return (
       <>
         <PageHeader
-          title={active ? 'Upload new resume' : 'Resume'}
+          title={active ? "Upload new resume" : "Resume"}
           description="Upload your resume to start analyzing jobs and generating tailored applications."
           actions={
             active ? (
@@ -129,36 +147,41 @@ export function ResumeManager({ initialResumes }: { initialResumes: Resume[] }) 
             <div className="flex gap-2 border-b border-border pb-4">
               <button
                 type="button"
-                onClick={() => setTab('upload')}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${tab === 'upload' ? 'bg-brand-subtle text-brand' : 'text-fg-muted hover:bg-surface-muted hover:text-fg'}`}
+                onClick={() => setTab("upload")}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${tab === "upload" ? "bg-brand-subtle text-brand" : "text-fg-muted hover:bg-surface-muted hover:text-fg"}`}
               >
                 Upload file
               </button>
               <button
                 type="button"
-                onClick={() => setTab('paste')}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${tab === 'paste' ? 'bg-brand-subtle text-brand' : 'text-fg-muted hover:bg-surface-muted hover:text-fg'}`}
+                onClick={() => setTab("paste")}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${tab === "paste" ? "bg-brand-subtle text-brand" : "text-fg-muted hover:bg-surface-muted hover:text-fg"}`}
               >
                 Paste text
               </button>
             </div>
 
-            {tab === 'upload' ? (
+            {tab === "upload" ? (
               <div className="space-y-4">
                 <div
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
                   onDragLeave={() => setDragOver(false)}
                   onDrop={onDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`relative flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-8 py-14 transition-colors ${dragOver ? 'border-brand bg-brand-subtle/50' : 'border-border-strong hover:border-brand hover:bg-brand-subtle/20'}`}
+                  className={`relative flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-8 py-14 transition-colors ${dragOver ? "border-brand bg-brand-subtle/50" : "border-border-strong hover:border-brand hover:bg-brand-subtle/20"}`}
                 >
-                  {fileStatus === 'idle' && !selectedFile ? (
+                  {fileStatus === "idle" && !selectedFile ? (
                     <>
                       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-subtle">
                         <Upload className="h-6 w-6 text-brand" />
                       </div>
                       <div className="text-center">
-                        <p className="text-sm font-medium text-fg">Drop your resume here</p>
+                        <p className="text-sm font-medium text-fg">
+                          Drop your resume here
+                        </p>
                         <p className="mt-1 text-xs text-fg-muted">
                           or click to browse — PDF, DOCX, or TXT
                         </p>
@@ -173,9 +196,9 @@ export function ResumeManager({ initialResumes }: { initialResumes: Resume[] }) 
                     <div className="flex flex-col items-center gap-3">
                       <Spinner className="h-8 w-8 text-brand" />
                       <p className="text-sm text-fg-muted">
-                        {fileStatus === 'reading'
-                          ? `Reading ${selectedFile?.name ?? 'file'}…`
-                          : 'Parsing and saving…'}
+                        {fileStatus === "reading"
+                          ? `Reading ${selectedFile?.name ?? "file"}…`
+                          : "Parsing and saving…"}
                       </p>
                     </div>
                   )}
@@ -188,7 +211,7 @@ export function ResumeManager({ initialResumes }: { initialResumes: Resume[] }) 
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) void handleFile(file);
-                    e.target.value = '';
+                    e.target.value = "";
                   }}
                 />
               </div>
@@ -206,7 +229,7 @@ export function ResumeManager({ initialResumes }: { initialResumes: Resume[] }) 
                   />
                 </div>
                 <Button
-                  loading={fileStatus === 'uploading'}
+                  loading={fileStatus === "uploading"}
                   disabled={text.trim().length < 100}
                   onClick={() => void uploadText()}
                 >
@@ -227,8 +250,16 @@ export function ResumeManager({ initialResumes }: { initialResumes: Resume[] }) 
         description="Correct anything the parser got wrong — everything downstream reads these fields."
         actions={
           <div className="flex items-center gap-3">
-            {active.needsReview ? <Badge tone="warn">Needs review</Badge> : <Badge tone="strong">Reviewed</Badge>}
-            <Button variant="outline" size="sm" onClick={() => setIsUploadingNew(true)}>
+            {active.needsReview ? (
+              <Badge tone="warn">Needs review</Badge>
+            ) : (
+              <Badge tone="strong">Reviewed</Badge>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsUploadingNew(true)}
+            >
               Upload new
             </Button>
           </div>
@@ -237,18 +268,20 @@ export function ResumeManager({ initialResumes }: { initialResumes: Resume[] }) 
 
       {active.needsReview && (
         <Alert tone="warn" className="mb-4" title="Check the parsed fields">
-          Resumes vary wildly in layout, so the parser is best-effort. Fix anything that looks wrong
-          before relying on a match score.
+          Resumes vary wildly in layout, so the parser is best-effort. Fix
+          anything that looks wrong before relying on a match score.
         </Alert>
       )}
 
       <ProfileEditor
         resume={active}
         onSaved={(updated) => {
-          setResumes((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-          toast('Resume updated.', 'success');
+          setResumes((prev) =>
+            prev.map((r) => (r.id === updated.id ? updated : r)),
+          );
+          toast("Resume updated.", "success");
         }}
-        onError={(message) => toast(message, 'error')}
+        onError={(message) => toast(message, "error")}
       />
     </>
   );

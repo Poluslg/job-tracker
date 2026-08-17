@@ -1,31 +1,51 @@
-import { useState } from 'react';
-import type { InterviewPrep, InterviewQuestion, JobPosting } from '@job-ai/types';
-import { Alert, Badge, Button, Card, CardBody, Skeleton, Tabs, TabPanel } from '@job-ai/ui';
-import { MessageError, send } from '../../lib/messaging.ts';
+import { useState } from "react";
+import type {
+  InterviewPrep,
+  InterviewQuestion,
+  JobPosting,
+} from "@job-ai/types";
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  Skeleton,
+  Tabs,
+  TabPanel,
+} from "@job-ai/ui";
+import { MessageError, send } from "../../lib/messaging.ts";
 
-const CATEGORY_LABELS: Record<InterviewQuestion['category'], string> = {
-  technical: 'Technical',
-  behavioral: 'Behavioral',
-  'resume-based': 'Your resume',
-  'company-role': 'Role & team',
+const CATEGORY_LABELS: Record<InterviewQuestion["category"], string> = {
+  technical: "Technical",
+  behavioral: "Behavioral",
+  "resume-based": "Your resume",
+  "company-role": "Role & team",
 };
 
 export function InterviewPanel({ job }: { job: JobPosting }) {
   const [prep, setPrep] = useState<InterviewPrep | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<string>('technical');
+  const [tab, setTab] = useState<string>("technical");
   const [open, setOpen] = useState<string | null>(null);
 
   const start = async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await send({ type: 'GENERATE_INTERVIEW_PREP', payload: { jobId: job.id } });
+      const result = await send({
+        type: "GENERATE_INTERVIEW_PREP",
+        payload: { jobId: job.id },
+      });
       setPrep(result.prep);
-      setTab(result.prep.questions[0]?.category ?? 'technical');
+      setTab(result.prep.questions[0]?.category ?? "technical");
     } catch (err) {
-      setError(err instanceof MessageError ? err.message : 'Could not build your prep workspace.');
+      setError(
+        err instanceof MessageError
+          ? err.message
+          : "Could not build your prep workspace.",
+      );
     } finally {
       setLoading(false);
     }
@@ -34,7 +54,9 @@ export function InterviewPanel({ job }: { job: JobPosting }) {
   if (loading) {
     return (
       <div className="space-y-3">
-        <p className="text-xs text-fg-muted">Building your preparation workspace…</p>
+        <p className="text-xs text-fg-muted">
+          Building your preparation workspace…
+        </p>
         <Skeleton className="h-16 w-full" />
         <Skeleton className="h-16 w-full" />
         <Skeleton className="h-16 w-full" />
@@ -48,8 +70,9 @@ export function InterviewPanel({ job }: { job: JobPosting }) {
         <div>
           <h2 className="text-sm font-semibold">Prepare for interview</h2>
           <p className="mt-1 text-xs leading-relaxed text-fg-muted">
-            Questions drawn from this posting and your actual resume — including the ones about gaps.
-            Answers are frameworks to build on, never scripts to recite.
+            Questions drawn from this posting and your actual resume — including
+            the ones about gaps. Answers are frameworks to build on, never
+            scripts to recite.
           </p>
         </div>
         {error && <Alert tone="danger">{error}</Alert>}
@@ -60,9 +83,9 @@ export function InterviewPanel({ job }: { job: JobPosting }) {
     );
   }
 
-  const categories = (['technical', 'behavioral', 'resume-based', 'company-role'] as const).filter((c) =>
-    prep.questions.some((q) => q.category === c),
-  );
+  const categories = (
+    ["technical", "behavioral", "resume-based", "company-role"] as const
+  ).filter((c) => prep.questions.some((q) => q.category === c));
 
   return (
     <div className="space-y-3">
@@ -80,7 +103,7 @@ export function InterviewPanel({ job }: { job: JobPosting }) {
             label: CATEGORY_LABELS[c],
             badge: prep.questions.filter((q) => q.category === c).length,
           })),
-          { id: 'notes', label: 'Study' },
+          { id: "notes", label: "Study" },
         ]}
       />
 
@@ -98,24 +121,41 @@ export function InterviewPanel({ job }: { job: JobPosting }) {
                       aria-expanded={open === q.id}
                       className="flex w-full items-start justify-between gap-2 text-left"
                     >
-                      <span className="text-xs leading-relaxed font-medium text-fg">{q.question}</span>
+                      <span className="text-xs leading-relaxed font-medium text-fg">
+                        {q.question}
+                      </span>
                       <Badge
                         size="sm"
-                        tone={q.difficulty === 'hard' ? 'danger' : q.difficulty === 'medium' ? 'warn' : 'neutral'}
+                        tone={
+                          q.difficulty === "hard"
+                            ? "danger"
+                            : q.difficulty === "medium"
+                              ? "warn"
+                              : "neutral"
+                        }
                       >
                         {q.difficulty}
                       </Badge>
                     </button>
                     {open === q.id && (
                       <div className="border-t border-border pt-2">
-                        <p className="text-[10px] font-medium text-fg-subtle">How to approach it</p>
-                        <p className="mt-0.5 text-[11px] leading-relaxed text-fg-muted">{q.answerFramework}</p>
+                        <p className="text-[10px] font-medium text-fg-subtle">
+                          How to approach it
+                        </p>
+                        <p className="mt-0.5 text-[11px] leading-relaxed text-fg-muted">
+                          {q.answerFramework}
+                        </p>
                         {q.drawFrom.length > 0 && (
                           <>
-                            <p className="mt-2 text-[10px] font-medium text-fg-subtle">Draw on</p>
+                            <p className="mt-2 text-[10px] font-medium text-fg-subtle">
+                              Draw on
+                            </p>
                             <ul className="mt-0.5 space-y-0.5">
                               {q.drawFrom.map((d, i) => (
-                                <li key={i} className="text-[11px] text-fg-muted">
+                                <li
+                                  key={i}
+                                  className="text-[11px] text-fg-muted"
+                                >
                                   • {d}
                                 </li>
                               ))}
@@ -140,8 +180,9 @@ export function InterviewPanel({ job }: { job: JobPosting }) {
       </TabPanel>
 
       <Alert tone="neutral">
-        These are preparation frameworks, not answers. Fill them with things you actually did — an
-        honest answer about a gap is stronger than a rehearsed claim you cannot defend.
+        These are preparation frameworks, not answers. Fill them with things you
+        actually did — an honest answer about a gap is stronger than a rehearsed
+        claim you cannot defend.
       </Alert>
     </div>
   );

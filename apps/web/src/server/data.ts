@@ -1,5 +1,10 @@
-import type { Application, JobPosting, Resume, ResumeVersion } from '@job-ai/types';
-import { nowIso } from '@job-ai/types';
+import type {
+  Application,
+  JobPosting,
+  Resume,
+  ResumeVersion,
+} from "@job-ai/types";
+import { nowIso } from "@job-ai/types";
 import {
   applicationFromJob,
   computeAnalysis,
@@ -11,15 +16,21 @@ import {
   fingerprintFor,
   toAnalysisRecord,
   SAMPLE_JOB_VARIANTS,
-} from '@job-ai/core';
-import { requireSession } from './auth.ts';
-import { getRepository, type UserData as RepoUserData } from './repository.ts';
+} from "@job-ai/core";
+import { requireSession } from "./auth.ts";
+import { getRepository, type UserData as RepoUserData } from "./repository.ts";
 
 export type { RepoUserData as UserData };
 
-export async function loadUserData(): Promise<{ userId: string; data: RepoUserData }> {
+export async function loadUserData(): Promise<{
+  userId: string;
+  data: RepoUserData;
+}> {
   const session = await requireSession();
-  return { userId: session.userId, data: await getRepository().getUserData(session.userId) };
+  return {
+    userId: session.userId,
+    data: await getRepository().getUserData(session.userId),
+  };
 }
 
 export async function mutateUserData(
@@ -30,7 +41,12 @@ export async function mutateUserData(
 }
 
 export function seedDemoWorkspace(data: RepoUserData): void {
-  const resume: Resume = { ...createSampleResume(), id: createId('res'), isDefault: true, needsReview: false };
+  const resume: Resume = {
+    ...createSampleResume(),
+    id: createId("res"),
+    isDefault: true,
+    needsReview: false,
+  };
   data.resumes = [resume];
 
   const templates = createSampleApplications();
@@ -40,14 +56,14 @@ export function seedDemoWorkspace(data: RepoUserData): void {
   const baseJob = createSampleJob();
 
   const baseVersion: ResumeVersion = {
-    id: createId('ver'),
+    id: createId("ver"),
     resumeId: resume.id,
-    name: 'General Software Engineer Resume',
-    kind: 'base',
+    name: "General Software Engineer Resume",
+    kind: "base",
     jobId: null,
     profile: resume.profile,
     content: resume.origin.rawText,
-    notes: 'The version used for most applications.',
+    notes: "The version used for most applications.",
     createdAt: nowIso(),
     updatedAt: nowIso(),
   };
@@ -55,32 +71,39 @@ export function seedDemoWorkspace(data: RepoUserData): void {
   data.resumeVersions = [
     baseVersion,
     {
-      id: createId('ver'),
+      id: createId("ver"),
       resumeId: resume.id,
-      name: 'Frontend Developer Resume',
-      kind: 'manual',
+      name: "Frontend Developer Resume",
+      kind: "manual",
       jobId: null,
       profile: resume.profile,
       content: resume.origin.rawText,
-      notes: 'Leads with the design-system and performance work.',
+      notes: "Leads with the design-system and performance work.",
       createdAt: nowIso(),
       updatedAt: nowIso(),
     },
   ];
 
   for (const [index, template] of templates.entries()) {
-    const discoveredAt = new Date(Date.now() - template.daysAgo * 24 * 3600 * 1000).toISOString();
+    const discoveredAt = new Date(
+      Date.now() - template.daysAgo * 24 * 3600 * 1000,
+    ).toISOString();
 
-    const description = SAMPLE_JOB_VARIANTS[index % SAMPLE_JOB_VARIANTS.length]!;
+    const description =
+      SAMPLE_JOB_VARIANTS[index % SAMPLE_JOB_VARIANTS.length]!;
     const job: JobPosting = {
       ...baseJob,
-      id: createId('job'),
+      id: createId("job"),
       title: template.title,
       company: template.company,
       description,
       requirements: extractRequirements(description),
-      url: `https://example.com/careers/${template.company.toLowerCase().replace(/\W+/g, '-')}`,
-      fingerprint: fingerprintFor(template.company, template.title, description),
+      url: `https://example.com/careers/${template.company.toLowerCase().replace(/\W+/g, "-")}`,
+      fingerprint: fingerprintFor(
+        template.company,
+        template.title,
+        description,
+      ),
       capturedAt: discoveredAt,
       createdAt: discoveredAt,
       updatedAt: discoveredAt,
@@ -88,11 +111,15 @@ export function seedDemoWorkspace(data: RepoUserData): void {
     jobs.push(job);
 
     const analysis = toAnalysisRecord(
-      computeAnalysis({ profile: resume.profile, resumeText: resume.origin.rawText, job }),
+      computeAnalysis({
+        profile: resume.profile,
+        resumeText: resume.origin.rawText,
+        job,
+      }),
       job.id,
       resume.id,
     );
-    
+
     analysis.score.overall = template.matchScore;
     analysis.createdAt = discoveredAt;
     data.analyses.push(analysis);
@@ -102,29 +129,45 @@ export function seedDemoWorkspace(data: RepoUserData): void {
     application.createdAt = discoveredAt;
     application.matchScore = template.matchScore;
 
-    const path: Application['status'][] =
-      template.status === 'saved'
-        ? ['saved']
-        : template.status === 'applied'
-          ? ['saved', 'applied']
-          : template.status === 'rejected'
-            ? ['saved', 'applied', 'rejected']
-            : template.status === 'interview'
-              ? ['saved', 'applied', 'recruiter-screen', 'interview']
-              : template.status === 'technical-round'
-                ? ['saved', 'applied', 'recruiter-screen', 'interview', 'technical-round']
-                : ['saved', 'applied', 'recruiter-screen', 'interview', 'technical-round', 'final-round', 'offer'];
+    const path: Application["status"][] =
+      template.status === "saved"
+        ? ["saved"]
+        : template.status === "applied"
+          ? ["saved", "applied"]
+          : template.status === "rejected"
+            ? ["saved", "applied", "rejected"]
+            : template.status === "interview"
+              ? ["saved", "applied", "recruiter-screen", "interview"]
+              : template.status === "technical-round"
+                ? [
+                    "saved",
+                    "applied",
+                    "recruiter-screen",
+                    "interview",
+                    "technical-round",
+                  ]
+                : [
+                    "saved",
+                    "applied",
+                    "recruiter-screen",
+                    "interview",
+                    "technical-round",
+                    "final-round",
+                    "offer",
+                  ];
 
     application.timeline = path.map((status, i) => ({
-      id: createId('ev'),
-      at: new Date(Date.now() - (template.daysAgo - i * 2) * 24 * 3600 * 1000).toISOString(),
-      type: 'status-change' as const,
+      id: createId("ev"),
+      at: new Date(
+        Date.now() - (template.daysAgo - i * 2) * 24 * 3600 * 1000,
+      ).toISOString(),
+      type: "status-change" as const,
       from: i === 0 ? null : (path[i - 1] ?? null),
       to: status,
-      text: '',
+      text: "",
     }));
     application.status = template.status;
-    const appliedEvent = application.timeline.find((e) => e.to === 'applied');
+    const appliedEvent = application.timeline.find((e) => e.to === "applied");
     application.appliedAt = appliedEvent?.at ?? null;
     application.resumeVersionId = baseVersion.id;
     application.resumeVersionName = baseVersion.name;
@@ -134,5 +177,4 @@ export function seedDemoWorkspace(data: RepoUserData): void {
 
   data.jobs = jobs;
   data.applications = applications;
-
 }

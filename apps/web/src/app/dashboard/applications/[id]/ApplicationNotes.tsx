@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button, Card, CardBody, Textarea, useToast } from '@job-ai/ui';
-import { errorMessage, patch } from '@/lib/api';
+import { useState } from "react";
+import { Button, Card, CardBody, Textarea, useToast } from "@job-ai/ui";
+import { errorMessage, patch } from "@/lib/api";
 
-export function ApplicationNotes({ id, initialNotes }: { id: string; initialNotes: string }) {
+export function ApplicationNotes({
+  id,
+  initialNotes,
+}: {
+  id: string;
+  initialNotes: string;
+}) {
   const [notes, setNotes] = useState(initialNotes);
   const [saved, setSaved] = useState(initialNotes);
   const [busy, setBusy] = useState(false);
@@ -15,9 +21,9 @@ export function ApplicationNotes({ id, initialNotes }: { id: string; initialNote
     try {
       await patch(`/api/applications/${id}`, { notes });
       setSaved(notes);
-      toast('Notes saved.', 'success');
+      toast("Notes saved.", "success");
     } catch (err) {
-      toast(errorMessage(err, 'Could not save your notes.'), 'error');
+      toast(errorMessage(err, "Could not save your notes."), "error");
     } finally {
       setBusy(false);
     }

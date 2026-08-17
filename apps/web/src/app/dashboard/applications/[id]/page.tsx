@@ -1,5 +1,5 @@
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
+import { notFound } from "next/navigation";
+import Link from "next/link";
 import {
   AtsPanel,
   Badge,
@@ -10,14 +10,14 @@ import {
   SkillMatchGroups,
   StatusBadge,
   bandFor,
-} from '@job-ai/ui';
-import { STATUS_LABELS } from '@job-ai/types';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
-import { loadUserData } from '@/server/data';
-import { PageHeader } from '@/components/PageHeader';
-import { ApplicationNotes } from './ApplicationNotes.tsx';
+} from "@job-ai/ui";
+import { STATUS_LABELS } from "@job-ai/types";
+import { ArrowLeft, ExternalLink } from "lucide-react";
+import { loadUserData } from "@/server/data";
+import { PageHeader } from "@/components/PageHeader";
+import { ApplicationNotes } from "./ApplicationNotes.tsx";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function ApplicationDetailPage({
   params,
@@ -33,8 +33,11 @@ export default async function ApplicationDetailPage({
     data.analyses.find((a) => a.id === application.analysisId) ??
     data.analyses.find((a) => a.jobId === application.jobId) ??
     null;
-  const coverLetter = data.coverLetters.find((c) => c.id === application.coverLetterId) ?? null;
-  const prep = data.interviewPreps.find((p) => p.id === application.interviewPrepId) ?? null;
+  const coverLetter =
+    data.coverLetters.find((c) => c.id === application.coverLetterId) ?? null;
+  const prep =
+    data.interviewPreps.find((p) => p.id === application.interviewPrepId) ??
+    null;
 
   return (
     <>
@@ -46,14 +49,22 @@ export default async function ApplicationDetailPage({
       </Link>
 
       <PageHeader
-        title={application.title || 'Untitled role'}
-        description={[application.company, application.location, application.salary]
+        title={application.title || "Untitled role"}
+        description={[
+          application.company,
+          application.location,
+          application.salary,
+        ]
           .filter(Boolean)
-          .join(' · ')}
+          .join(" · ")}
         actions={
           application.url ? (
             <a
-              href={application.url.startsWith('http') ? application.url : 'https://' + application.url}
+              href={
+                application.url.startsWith("http")
+                  ? application.url
+                  : "https://" + application.url
+              }
               target="_blank"
               rel="noreferrer noopener"
               className="inline-flex h-9 items-center gap-2 rounded-lg border border-border-strong px-4 text-sm hover:bg-surface-muted"
@@ -76,13 +87,22 @@ export default async function ApplicationDetailPage({
                       {bandFor(analysis.score.overall).label}
                     </Badge>
                     <p className="mt-2 text-xs leading-relaxed text-fg-muted">
-                      {analysis.skills.filter((s) => s.quality === 'strong').length} skills matched ·{' '}
-                      {analysis.skills.filter((s) => s.quality === 'missing' && s.required).length} required
-                      gaps · ATS coverage {analysis.ats.coverage}%
+                      {
+                        analysis.skills.filter((s) => s.quality === "strong")
+                          .length
+                      }{" "}
+                      skills matched ·{" "}
+                      {
+                        analysis.skills.filter(
+                          (s) => s.quality === "missing" && s.required,
+                        ).length
+                      }{" "}
+                      required gaps · ATS coverage {analysis.ats.coverage}%
                     </p>
                     <p className="mt-1.5 text-[11px] leading-relaxed text-fg-subtle">
-                      An analytical estimate of resume-to-posting alignment. It is not a prediction of
-                      whether you will be contacted, interviewed or hired.
+                      An analytical estimate of resume-to-posting alignment. It
+                      is not a prediction of whether you will be contacted,
+                      interviewed or hired.
                     </p>
                   </div>
                 </CardBody>
@@ -104,7 +124,9 @@ export default async function ApplicationDetailPage({
 
               <Card>
                 <CardBody>
-                  <h2 className="mb-3 text-sm font-semibold">How this score was calculated</h2>
+                  <h2 className="mb-3 text-sm font-semibold">
+                    How this score was calculated
+                  </h2>
                   <ScoreExplanation score={analysis.score} />
                 </CardBody>
               </Card>
@@ -113,8 +135,9 @@ export default async function ApplicationDetailPage({
             <Card>
               <CardBody>
                 <p className="text-sm text-fg-muted">
-                  No analysis is stored for this application yet. Open the posting with the extension,
-                  or paste it into the Job Analyzer, to generate one.
+                  No analysis is stored for this application yet. Open the
+                  posting with the extension, or paste it into the Job Analyzer,
+                  to generate one.
                 </p>
               </CardBody>
             </Card>
@@ -124,7 +147,9 @@ export default async function ApplicationDetailPage({
             <Card>
               <CardBody>
                 <h2 className="mb-2 text-sm font-semibold">Cover letter</h2>
-                <p className="text-xs whitespace-pre-wrap text-fg-muted">{coverLetter.body}</p>
+                <p className="text-xs whitespace-pre-wrap text-fg-muted">
+                  {coverLetter.body}
+                </p>
               </CardBody>
             </Card>
           )}
@@ -137,24 +162,42 @@ export default async function ApplicationDetailPage({
                 <span className="text-xs text-fg-muted">Status</span>
                 <StatusBadge status={application.status} />
               </div>
-              <Detail label="Discovered" value={new Date(application.discoveredAt).toLocaleDateString()} />
+              <Detail
+                label="Discovered"
+                value={new Date(application.discoveredAt).toLocaleDateString()}
+              />
               <Detail
                 label="Applied"
-                value={application.appliedAt ? new Date(application.appliedAt).toLocaleDateString() : '—'}
+                value={
+                  application.appliedAt
+                    ? new Date(application.appliedAt).toLocaleDateString()
+                    : "—"
+                }
               />
-              <Detail label="Resume version" value={application.resumeVersionName || 'Not recorded'} />
-              <Detail label="Job type" value={application.jobType || '—'} />
+              <Detail
+                label="Resume version"
+                value={application.resumeVersionName || "Not recorded"}
+              />
+              <Detail label="Job type" value={application.jobType || "—"} />
               {application.recruiter.name && (
                 <Detail
                   label="Recruiter"
-                  value={`${application.recruiter.name}${application.recruiter.email ? ` · ${application.recruiter.email}` : ''}`}
+                  value={`${application.recruiter.name}${application.recruiter.email ? ` · ${application.recruiter.email}` : ""}`}
                 />
               )}
-              {prep && <Detail label="Interview prep" value={`${prep.questions.length} questions`} />}
+              {prep && (
+                <Detail
+                  label="Interview prep"
+                  value={`${prep.questions.length} questions`}
+                />
+              )}
             </CardBody>
           </Card>
 
-          <ApplicationNotes id={application.id} initialNotes={application.notes} />
+          <ApplicationNotes
+            id={application.id}
+            initialNotes={application.notes}
+          />
 
           <Card>
             <CardBody>

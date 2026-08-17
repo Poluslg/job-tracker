@@ -1,4 +1,4 @@
-import { JobCardSkeleton, PageHeaderSkeleton } from '@/components/Skeletons';
+import { JobCardSkeleton, PageHeaderSkeleton } from "@/components/Skeletons";
 
 export default function SavedJobsLoading() {
   return (

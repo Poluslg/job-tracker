@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import type { ExtensionState, UserSettings } from '@job-ai/types';
+import { useEffect, useState } from "react";
+import type { ExtensionState, UserSettings, Resume } from "@job-ai/types";
 import {
   Alert,
+  Badge,
   Button,
   Card,
   CardBody,
@@ -13,29 +14,34 @@ import {
   Tabs,
   TabPanel,
   useToast,
-} from '@job-ai/ui';
-import { Download, Trash2 } from 'lucide-react';
-import { send } from '../lib/messaging.ts';
-import { applyTheme } from '../lib/theme.ts';
-import { downloadDataUrl, downloadText } from '../lib/download.ts';
-import { ResumeUpload } from '../components/ResumeUpload.tsx';
-import { ProviderSetup } from '../components/ProviderSetup.tsx';
+} from "@job-ai/ui";
+import { Download, Trash2 } from "lucide-react";
+import { send } from "../lib/messaging.ts";
+import { applyTheme } from "../lib/theme.ts";
+import { downloadDataUrl, downloadText } from "../lib/download.ts";
+import { ResumeUpload } from "../components/ResumeUpload.tsx";
+import { ProviderSetup } from "../components/ProviderSetup.tsx";
+import { ProfileEditor } from "../components/ProfileEditor.tsx";
 
-const WEB_DASHBOARD_URL = 'http://localhost:3000';
+const WEB_DASHBOARD_URL = "http://localhost:3000";
 
 export function Options() {
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [state, setState] = useState<ExtensionState | null>(null);
-  const [tab, setTab] = useState('resume');
+  const [resume, setResume] = useState<Resume | null>(null);
+  const [tab, setTab] = useState("resume");
+  const [isUploadingNew, setIsUploadingNew] = useState(false);
   const { toast } = useToast();
 
   const reload = async () => {
-    const [nextSettings, nextState] = await Promise.all([
-      send({ type: 'GET_SETTINGS' }),
-      send({ type: 'GET_STATE' }),
+    const [nextSettings, nextState, nextResume] = await Promise.all([
+      send({ type: "GET_SETTINGS" }),
+      send({ type: "GET_STATE" }),
+      send({ type: "GET_RESUME" }),
     ]);
     setSettings(nextSettings);
     setState(nextState);
+    setResume(nextResume.resume);
     applyTheme(nextSettings.ui.theme);
   };
 
@@ -44,7 +50,7 @@ export function Options() {
   }, []);
 
   const patch = async (payload: Partial<UserSettings>) => {
-    const next = await send({ type: 'UPDATE_SETTINGS', payload });
+    const next = await send({ type: "UPDATE_SETTINGS", payload });
     setSettings(next);
     applyTheme(next.ui.theme);
     return next;
@@ -65,9 +71,9 @@ export function Options() {
         <header className="mb-6">
           <h1 className="text-xl font-semibold text-fg">Settings</h1>
           <p className="mt-1 text-sm text-fg-muted">
-            {state.authMode === 'guest'
-              ? 'Guest mode — everything is stored on this device only.'
-              : 'Signed in — your data syncs to the web dashboard.'}
+            {state.authMode === "guest"
+              ? "Guest mode — everything is stored on this device only."
+              : "Signed in — your data syncs to the web dashboard."}
           </p>
         </header>
 
@@ -75,31 +81,95 @@ export function Options() {
           active={tab}
           onChange={setTab}
           items={[
-            { id: 'resume', label: 'Resume' },
-            { id: 'ai', label: 'AI provider' },
-            { id: 'scoring', label: 'Scoring' },
-            { id: 'appearance', label: 'Appearance' },
-            { id: 'privacy', label: 'Privacy & data' },
-            { id: 'account', label: 'Account' },
+            { id: "resume", label: "Resume" },
+            { id: "ai", label: "AI provider" },
+            { id: "scoring", label: "Scoring" },
+            { id: "appearance", label: "Appearance" },
+            { id: "privacy", label: "Privacy & data" },
+            { id: "account", label: "Account" },
           ]}
         />
 
         <div className="pt-6">
           <TabPanel id="resume" active={tab}>
-            <Card>
-              <CardHeader>
-                <CardTitle>Your resume</CardTitle>
-              </CardHeader>
-              <CardBody>
-                <ResumeUpload
-                  currentLabel={state.resumeLabel}
-                  onUploaded={(label) => {
-                    toast(`Saved "${label}".`, 'success');
-                    void reload();
+            {!resume || isUploadingNew ? (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-fg">
+                      {resume ? "Upload new resume" : "Resume"}
+                    </h2>
+                    <p className="mt-1 text-sm text-fg-muted">
+                      Upload your resume to start analyzing jobs and generating
+                      tailored applications.
+                    </p>
+                  </div>
+                  {resume && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => setIsUploadingNew(false)}
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </div>
+
+                <Card>
+                  <CardBody className="space-y-6">
+                    <ResumeUpload
+                      onUploaded={(label) => {
+                        toast(`Saved "${label}".`, "success");
+                        setIsUploadingNew(false);
+                        void reload();
+                      }}
+                    />
+                  </CardBody>
+                </Card>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-fg">Resume</h2>
+                    <p className="mt-1 text-sm text-fg-muted">
+                      Correct anything the parser got wrong — everything
+                      downstream reads these fields.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {resume.needsReview ? (
+                      <Badge tone="warn">Needs review</Badge>
+                    ) : (
+                      <Badge tone="strong">Reviewed</Badge>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsUploadingNew(true)}
+                    >
+                      Upload new
+                    </Button>
+                  </div>
+                </div>
+
+                {resume.needsReview && (
+                  <Alert tone="warn" title="Check the parsed fields">
+                    Resumes vary wildly in layout, so the parser is best-effort.
+                    Fix anything that looks wrong before relying on a match
+                    score.
+                  </Alert>
+                )}
+
+                <ProfileEditor
+                  resume={resume}
+                  onSaved={(next) => {
+                    setResume(next);
+                    toast("Profile saved.", "success");
                   }}
+                  onError={(err) => toast(err, "error")}
                 />
-              </CardBody>
-            </Card>
+              </div>
+            )}
           </TabPanel>
 
           <TabPanel id="ai" active={tab}>
@@ -112,7 +182,7 @@ export function Options() {
                   settings={settings}
                   onSaved={(next) => {
                     setSettings(next);
-                    toast('Provider settings saved.', 'success');
+                    toast("Provider settings saved.", "success");
                     void reload();
                   }}
                 />
@@ -123,7 +193,10 @@ export function Options() {
                     description="Use bundled sample data instead of calling a provider. Results are clearly labelled as samples."
                     onChange={async (demoMode) => {
                       await patch({ demoMode });
-                      toast(demoMode ? 'Demo mode on.' : 'Demo mode off.', 'success');
+                      toast(
+                        demoMode ? "Demo mode on." : "Demo mode off.",
+                        "success",
+                      );
                       void reload();
                     }}
                   />
@@ -133,7 +206,11 @@ export function Options() {
           </TabPanel>
 
           <TabPanel id="scoring" active={tab}>
-            <ScoringSettings settings={settings} onChange={patch} onSaved={() => toast('Weights updated.', 'success')} />
+            <ScoringSettings
+              settings={settings}
+              onChange={patch}
+              onSaved={() => toast("Weights updated.", "success")}
+            />
           </TabPanel>
 
           <TabPanel id="appearance" active={tab}>
@@ -143,14 +220,22 @@ export function Options() {
               </CardHeader>
               <CardBody className="space-y-4">
                 <div className="max-w-xs">
-                  <label htmlFor="theme" className="mb-1.5 block text-xs font-medium text-fg-muted">
+                  <label
+                    htmlFor="theme"
+                    className="mb-1.5 block text-xs font-medium text-fg-muted"
+                  >
                     Theme
                   </label>
                   <Select
                     id="theme"
                     value={settings.ui.theme}
                     onChange={(e) =>
-                      void patch({ ui: { ...settings.ui, theme: e.target.value as UserSettings['ui']['theme'] } })
+                      void patch({
+                        ui: {
+                          ...settings.ui,
+                          theme: e.target.value as UserSettings["ui"]["theme"],
+                        },
+                      })
                     }
                   >
                     <option value="system">Match system</option>
@@ -163,21 +248,30 @@ export function Options() {
                   checked={settings.ui.showFloatingButton}
                   label="Show the floating button on job pages"
                   description="A small button appears in the corner when a posting is detected."
-                  onChange={(showFloatingButton) => void patch({ ui: { ...settings.ui, showFloatingButton } })}
+                  onChange={(showFloatingButton) =>
+                    void patch({ ui: { ...settings.ui, showFloatingButton } })
+                  }
                 />
 
                 <Switch
                   checked={settings.ui.autoAnalyze}
                   label="Analyze automatically when a job is detected"
                   description="Off by default — automatic analysis spends tokens on your provider account without you asking."
-                  onChange={(autoAnalyze) => void patch({ ui: { ...settings.ui, autoAnalyze } })}
+                  onChange={(autoAnalyze) =>
+                    void patch({ ui: { ...settings.ui, autoAnalyze } })
+                  }
                 />
               </CardBody>
             </Card>
           </TabPanel>
 
           <TabPanel id="privacy" active={tab}>
-            <PrivacySettings settings={settings} onChange={patch} onToast={toast} onReload={reload} />
+            <PrivacySettings
+              settings={settings}
+              onChange={patch}
+              onToast={toast}
+              onReload={reload}
+            />
           </TabPanel>
 
           <TabPanel id="account" active={tab}>
@@ -187,26 +281,43 @@ export function Options() {
               </CardHeader>
               <CardBody className="space-y-4">
                 <p className="text-sm text-fg-muted">
-                  You&rsquo;re using guest mode. Everything works without an account — a free account
-                  only adds cross-device sync and the web dashboard.
+                  You&rsquo;re using guest mode. Everything works without an
+                  account — a free account only adds cross-device sync and the
+                  web dashboard.
                 </p>
                 <ul className="space-y-1.5 text-xs text-fg-muted">
-                  <li>• Sync your resume versions and tracker across devices</li>
-                  <li>• Full application table, notes, contacts and interview scheduling</li>
-                  <li>• Analytics: funnel, response rate and repeated skill gaps</li>
+                  <li>
+                    • Sync your resume versions and tracker across devices
+                  </li>
+                  <li>
+                    • Full application table, notes, contacts and interview
+                    scheduling
+                  </li>
+                  <li>
+                    • Analytics: funnel, response rate and repeated skill gaps
+                  </li>
                 </ul>
                 <Alert tone="neutral">
-                  Local data stays local until you explicitly turn sync on. Signing in never uploads
-                  anything on its own.
+                  Local data stays local until you explicitly turn sync on.
+                  Signing in never uploads anything on its own.
                 </Alert>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
-                    onClick={() => void chrome.tabs.create({ url: `${WEB_DASHBOARD_URL}/login` })}
+                    onClick={() =>
+                      void chrome.tabs.create({
+                        url: `${WEB_DASHBOARD_URL}/login`,
+                      })
+                    }
                   >
                     Create a free account
                   </Button>
-                  <Button variant="ghost" onClick={() => void chrome.tabs.create({ url: WEB_DASHBOARD_URL })}>
+                  <Button
+                    variant="ghost"
+                    onClick={() =>
+                      void chrome.tabs.create({ url: WEB_DASHBOARD_URL })
+                    }
+                  >
                     Open dashboard
                   </Button>
                 </div>
@@ -232,13 +343,13 @@ function ScoringSettings({
   const total = Object.values(weights).reduce((a, b) => a + b, 0);
 
   const LABELS: Record<keyof typeof weights, string> = {
-    requiredSkills: 'Required skills',
-    preferredSkills: 'Preferred skills',
-    experience: 'Experience',
-    responsibilities: 'Responsibilities',
-    keywords: 'Keyword / ATS coverage',
-    education: 'Education & certifications',
-    domain: 'Domain alignment',
+    requiredSkills: "Required skills",
+    preferredSkills: "Preferred skills",
+    experience: "Experience",
+    responsibilities: "Responsibilities",
+    keywords: "Keyword / ATS coverage",
+    education: "Education & certifications",
+    domain: "Domain alignment",
   };
 
   return (
@@ -248,9 +359,9 @@ function ScoringSettings({
       </CardHeader>
       <CardBody className="space-y-4">
         <p className="text-xs leading-relaxed text-fg-muted">
-          The match score is computed locally from these weights — no model produces the number, which
-          is why it is reproducible and explainable. Weights are normalised, so they need not sum to
-          exactly 100%.
+          The match score is computed locally from these weights — no model
+          produces the number, which is why it is reproducible and explainable.
+          Weights are normalised, so they need not sum to exactly 100%.
         </p>
 
         {(Object.keys(LABELS) as Array<keyof typeof weights>).map((key) => (
@@ -269,7 +380,9 @@ function ScoringSettings({
               min={0}
               max={50}
               value={Math.round(weights[key] * 100)}
-              onChange={(e) => setWeights({ ...weights, [key]: Number(e.target.value) / 100 })}
+              onChange={(e) =>
+                setWeights({ ...weights, [key]: Number(e.target.value) / 100 })
+              }
               className="mt-1 w-full accent-[var(--color-brand)]"
             />
           </div>
@@ -317,15 +430,17 @@ function PrivacySettings({
 }: {
   settings: UserSettings;
   onChange: (patch: Partial<UserSettings>) => Promise<UserSettings>;
-  onToast: (message: string, tone: 'success' | 'error' | 'info') => void;
+  onToast: (message: string, tone: "success" | "error" | "info") => void;
   onReload: () => Promise<void>;
 }) {
-  const [confirming, setConfirming] = useState<'all' | 'applications' | 'resumes' | null>(null);
+  const [confirming, setConfirming] = useState<
+    "all" | "applications" | "resumes" | null
+  >(null);
 
-  const clear = async (scope: 'all' | 'applications' | 'resumes') => {
-    await send({ type: 'CLEAR_LOCAL_DATA', payload: { scope } });
+  const clear = async (scope: "all" | "applications" | "resumes") => {
+    await send({ type: "CLEAR_LOCAL_DATA", payload: { scope } });
     setConfirming(null);
-    onToast('Deleted.', 'success');
+    onToast("Deleted.", "success");
     await onReload();
   };
 
@@ -341,7 +456,9 @@ function PrivacySettings({
             label="Redact contact details in AI requests"
             description="Replaces email addresses and phone numbers with placeholders before your resume text is sent to a provider."
             onChange={(redactContactInfo) =>
-              void onChange({ privacy: { ...settings.privacy, redactContactInfo } })
+              void onChange({
+                privacy: { ...settings.privacy, redactContactInfo },
+              })
             }
           />
           <Switch
@@ -349,7 +466,9 @@ function PrivacySettings({
             label="Store a copy of each job description"
             description="Keeps your tracker readable after a posting is removed. Uses more local storage."
             onChange={(storeJobSnapshots) =>
-              void onChange({ privacy: { ...settings.privacy, storeJobSnapshots } })
+              void onChange({
+                privacy: { ...settings.privacy, storeJobSnapshots },
+              })
             }
           />
           <Switch
@@ -357,7 +476,9 @@ function PrivacySettings({
             label="Share anonymous usage counts"
             description="Off by default. Never includes resume, job or analysis content. We do not use your data to train models."
             onChange={(shareAnonymousUsage) =>
-              void onChange({ privacy: { ...settings.privacy, shareAnonymousUsage } })
+              void onChange({
+                privacy: { ...settings.privacy, shareAnonymousUsage },
+              })
             }
           />
         </CardBody>
@@ -372,11 +493,17 @@ function PrivacySettings({
             variant="outline"
             onClick={async () => {
               try {
-                const file = await send({ type: 'EXPORT_TRACKER', payload: { format: 'xlsx' } });
+                const file = await send({
+                  type: "EXPORT_TRACKER",
+                  payload: { format: "xlsx" },
+                });
                 await downloadDataUrl(file.dataUrl, file.fileName);
-                onToast(`Exported ${file.fileName}`, 'success');
+                onToast(`Exported ${file.fileName}`, "success");
               } catch (err) {
-                onToast(err instanceof Error ? err.message : 'Export failed.', 'error');
+                onToast(
+                  err instanceof Error ? err.message : "Export failed.",
+                  "error",
+                );
               }
             }}
           >
@@ -386,11 +513,17 @@ function PrivacySettings({
             variant="outline"
             onClick={async () => {
               try {
-                const file = await send({ type: 'EXPORT_TRACKER', payload: { format: 'csv' } });
+                const file = await send({
+                  type: "EXPORT_TRACKER",
+                  payload: { format: "csv" },
+                });
                 await downloadDataUrl(file.dataUrl, file.fileName);
-                onToast(`Exported ${file.fileName}`, 'success');
+                onToast(`Exported ${file.fileName}`, "success");
               } catch (err) {
-                onToast(err instanceof Error ? err.message : 'Export failed.', 'error');
+                onToast(
+                  err instanceof Error ? err.message : "Export failed.",
+                  "error",
+                );
               }
             }}
           >
@@ -399,13 +532,13 @@ function PrivacySettings({
           <Button
             variant="ghost"
             onClick={async () => {
-              const applications = await send({ type: 'LIST_APPLICATIONS' });
+              const applications = await send({ type: "LIST_APPLICATIONS" });
               downloadText(
                 JSON.stringify(applications, null, 2),
-                'career-copilot-data.json',
-                'application/json',
+                "career-copilot-data.json",
+                "application/json",
               );
-              onToast('Exported your data as JSON.', 'success');
+              onToast("Exported your data as JSON.", "success");
             }}
           >
             Everything as JSON
@@ -419,14 +552,27 @@ function PrivacySettings({
         </CardHeader>
         <CardBody className="space-y-3">
           <p className="text-xs text-fg-muted">
-            Deletion is immediate and cannot be undone. Export first if you might want the data back.
+            Deletion is immediate and cannot be undone. Export first if you
+            might want the data back.
           </p>
 
           {(
             [
-              ['applications', 'Delete tracker & saved jobs', 'Removes every application, job, analysis, cover letter and interview prep.'],
-              ['resumes', 'Delete resumes & versions', 'Removes your uploaded resume text and all tailored versions.'],
-              ['all', 'Delete everything', 'Clears all local extension data, including your API key and settings.'],
+              [
+                "applications",
+                "Delete tracker & saved jobs",
+                "Removes every application, job, analysis, cover letter and interview prep.",
+              ],
+              [
+                "resumes",
+                "Delete resumes & versions",
+                "Removes your uploaded resume text and all tailored versions.",
+              ],
+              [
+                "all",
+                "Delete everything",
+                "Clears all local extension data, including your API key and settings.",
+              ],
             ] as const
           ).map(([scope, label, description]) => (
             <div key={scope} className="rounded-lg border border-border p-3">
@@ -434,15 +580,28 @@ function PrivacySettings({
               <p className="mt-0.5 text-xs text-fg-muted">{description}</p>
               {confirming === scope ? (
                 <div className="mt-2 flex gap-2">
-                  <Button size="sm" variant="danger" onClick={() => void clear(scope)}>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => void clear(scope)}
+                  >
                     Yes, delete permanently
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setConfirming(null)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setConfirming(null)}
+                  >
                     Cancel
                   </Button>
                 </div>
               ) : (
-                <Button size="sm" variant="outline" className="mt-2" onClick={() => setConfirming(scope)}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-2"
+                  onClick={() => setConfirming(scope)}
+                >
                   <Trash2 className="h-3.5 w-3.5" /> {label}
                 </Button>
               )}

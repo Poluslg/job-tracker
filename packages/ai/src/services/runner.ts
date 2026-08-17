@@ -1,8 +1,8 @@
-import type { AIProvider, AIUsage } from '@job-ai/types';
-import { AIError } from '@job-ai/types';
-import type { z } from 'zod';
-import type { PromptTemplate } from '../prompts/shared.ts';
-import { jsonSchemaFor } from '../schemas/index.ts';
+import type { AIProvider, AIUsage } from "@job-ai/types";
+import { AIError } from "@job-ai/types";
+import type { z } from "zod";
+import type { PromptTemplate } from "../prompts/shared.ts";
+import { jsonSchemaFor } from "../schemas/index.ts";
 
 export interface RunOptions {
   signal?: AbortSignal;
@@ -26,7 +26,7 @@ export function repairJson(raw: string): string {
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenced?.[1]) text = fenced[1].trim();
 
-  const start = text.indexOf('{');
+  const start = text.indexOf("{");
   if (start === -1) return text;
 
   let depth = 0;
@@ -38,14 +38,14 @@ export function repairJson(raw: string): string {
       escaped = false;
       continue;
     }
-    if (ch === '\\') {
+    if (ch === "\\") {
       escaped = true;
       continue;
     }
     if (ch === '"') inString = !inString;
     if (inString) continue;
-    if (ch === '{') depth++;
-    else if (ch === '}') {
+    if (ch === "{") depth++;
+    else if (ch === "}") {
       depth--;
       if (depth === 0) return text.slice(start, i + 1);
     }
@@ -53,8 +53,8 @@ export function repairJson(raw: string): string {
 
   let candidate = text.slice(start);
   if (inString) candidate += '"';
-  candidate = candidate.replace(/,\s*$/, '');
-  return candidate + '}'.repeat(Math.max(0, depth));
+  candidate = candidate.replace(/,\s*$/, "");
+  return candidate + "}".repeat(Math.max(0, depth));
 }
 
 export async function runPrompt<TInput, TSchema extends z.ZodType>(
@@ -65,7 +65,10 @@ export async function runPrompt<TInput, TSchema extends z.ZodType>(
   options: RunOptions = {},
 ): Promise<RunResult<z.infer<TSchema>>> {
   const maxAttempts = options.maxAttempts ?? 2;
-  let lastError: AIError = new AIError('unknown', 'The request was not attempted.');
+  let lastError: AIError = new AIError(
+    "unknown",
+    "The request was not attempted.",
+  );
   let repaired = false;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -76,14 +79,16 @@ export async function runPrompt<TInput, TSchema extends z.ZodType>(
         user:
           attempt === 1
             ? prompt.build(input)
-            :
-            `${prompt.build(input)}\n\nIMPORTANT: your previous reply was not valid JSON matching the requested shape. Reply with the JSON object only.`,
+            : `${prompt.build(input)}\n\nIMPORTANT: your previous reply was not valid JSON matching the requested shape. Reply with the JSON object only.`,
         jsonSchema: jsonSchemaFor(schema),
-        ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
-        ...(options.maxOutputTokens !== undefined ? { maxOutputTokens: options.maxOutputTokens } : {}),
+        ...(options.temperature !== undefined
+          ? { temperature: options.temperature }
+          : {}),
+        ...(options.maxOutputTokens !== undefined
+          ? { maxOutputTokens: options.maxOutputTokens }
+          : {}),
         ...(options.signal ? { signal: options.signal } : {}),
       });
-
 
       const cleaned = repairJson(response.text);
 
@@ -93,7 +98,11 @@ export async function runPrompt<TInput, TSchema extends z.ZodType>(
       try {
         parsed = JSON.parse(cleaned);
       } catch {
-        lastError = new AIError('invalid-response', 'The model did not return valid JSON.', true);
+        lastError = new AIError(
+          "invalid-response",
+          "The model did not return valid JSON.",
+          true,
+        );
         continue;
       }
 
@@ -101,8 +110,8 @@ export async function runPrompt<TInput, TSchema extends z.ZodType>(
       if (!result.success) {
         const issue = result.error.issues[0];
         lastError = new AIError(
-          'invalid-response',
-          `The model's response did not match the expected shape${issue ? ` (${issue.path.join('.') || 'root'}: ${issue.message})` : ''}.`,
+          "invalid-response",
+          `The model's response did not match the expected shape${issue ? ` (${issue.path.join(".") || "root"}: ${issue.message})` : ""}.`,
           true,
         );
         continue;
@@ -115,7 +124,10 @@ export async function runPrompt<TInput, TSchema extends z.ZodType>(
         repaired,
       };
     } catch (err) {
-      lastError = err instanceof AIError ? err : new AIError('unknown', 'The AI request failed.');
+      lastError =
+        err instanceof AIError
+          ? err
+          : new AIError("unknown", "The AI request failed.");
       if (!lastError.retryable) throw lastError;
 
       if (attempt < maxAttempts) await sleep(600 * attempt);
