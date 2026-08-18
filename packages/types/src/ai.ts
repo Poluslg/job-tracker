@@ -5,6 +5,7 @@ export const AIProviderId = z.enum([
   "anthropic",
   "gemini",
   "openrouter",
+  "custom",
   "mock",
 ]);
 export type AIProviderId = z.infer<typeof AIProviderId>;
@@ -29,6 +30,7 @@ export const AIProviderConfig = z.object({
   apiKey: z.string().default(""),
 
   baseUrl: z.string().default(""),
+  customName: z.string().default(""),
   temperature: z.number().min(0).max(2).default(0.2),
   maxOutputTokens: z.number().min(256).max(32000).default(4096),
 });

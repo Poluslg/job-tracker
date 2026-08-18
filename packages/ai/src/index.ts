@@ -1,4 +1,5 @@
 export * from "./providers/base.ts";
+export * from "./providers/custom.ts";
 export * from "./providers/registry.ts";
 export * from "./schemas/index.ts";
 export * from "./prompts/shared.ts";

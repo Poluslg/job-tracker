@@ -19,6 +19,8 @@ export function ProviderSetup({
     settings.ai.model || PROVIDER_META[provider].defaultModel,
   );
   const [apiKey, setApiKey] = useState("");
+  const [baseUrl, setBaseUrl] = useState(settings.ai.baseUrl);
+  const [customName, setCustomName] = useState(settings.ai.customName || "");
   const [testing, setTesting] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(
     null,
@@ -40,7 +42,7 @@ export function ProviderSetup({
     try {
       const response = await send({
         type: "TEST_AI_CONNECTION",
-        payload: { provider, apiKey: apiKey || settings.ai.apiKey, model },
+        payload: { provider, apiKey: apiKey || settings.ai.apiKey, model, baseUrl },
       });
       setResult(response);
     } catch (err) {
@@ -64,6 +66,8 @@ export function ProviderSetup({
             ...settings.ai,
             provider,
             model,
+            baseUrl,
+            customName,
 
             apiKey: apiKey || settings.ai.apiKey,
           },
@@ -107,6 +111,29 @@ export function ProviderSetup({
         </Select>
       </div>
 
+      {provider === "custom" && (
+        <>
+          <div>
+            <Label htmlFor="custom-name">Provider name (optional)</Label>
+            <Input
+              id="custom-name"
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              placeholder="e.g. Local LLM"
+            />
+          </div>
+          <div>
+            <Label htmlFor="base-url">Base URL</Label>
+            <Input
+              id="base-url"
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+              placeholder="e.g. http://localhost:11434/v1"
+            />
+          </div>
+        </>
+      )}
+
       <div>
         <Label htmlFor="model">Model</Label>
         <Input
@@ -146,18 +173,20 @@ export function ProviderSetup({
               : "Paste your key"
           }
         />
-        <a
-          href={meta.keyUrl}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="mt-1.5 inline-flex items-center gap-1 text-xs text-brand underline"
-        >
-          Get a {meta.name} key <ExternalLink className="h-3 w-3" />
-        </a>
+        {meta.keyUrl && (
+          <a
+            href={meta.keyUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="mt-1.5 inline-flex items-center gap-1 text-xs text-brand underline"
+          >
+            Get a {meta.name} key <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
       </div>
 
       <Alert tone="warn" title="Bring your own key">
-        Requests go directly from this extension to {meta.name} using your key.
+        Requests go directly from this extension to {provider === "custom" ? (customName || "your provider") : meta.name} using your key.
         Usage is billed to your own provider account, and you are responsible
         for those costs. We never see or store your key on any server.
       </Alert>
@@ -179,14 +208,14 @@ export function ProviderSetup({
         <Button
           variant="outline"
           loading={testing}
-          disabled={!apiKey && !hasStoredKey}
+          disabled={(!apiKey && !hasStoredKey && provider !== "custom") || (provider === "custom" && !baseUrl)}
           onClick={() => void test()}
         >
           Test connection
         </Button>
         <Button
           loading={saving}
-          disabled={!apiKey && !hasStoredKey}
+          disabled={(!apiKey && !hasStoredKey && provider !== "custom") || (provider === "custom" && !baseUrl)}
           onClick={() => void save()}
         >
           Save

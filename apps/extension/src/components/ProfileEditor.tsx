@@ -87,7 +87,7 @@ export function ProfileEditor({
                     <Label htmlFor={`contact-${key}`}>{label}</Label>
                     <Input
                       id={`contact-${key}`}
-                      value={profile.contact[key]}
+                      value={profile.contact[key] || ""}
                       onChange={(e) =>
                         update("contact", {
                           ...profile.contact,
@@ -107,7 +107,7 @@ export function ProfileEditor({
               <Textarea
                 id="summary"
                 rows={4}
-                value={profile.summary}
+                value={profile.summary || ""}
                 onChange={(e) => update("summary", e.target.value)}
                 className="text-xs"
               />
@@ -142,7 +142,7 @@ export function ProfileEditor({
                         <Label htmlFor={`exp-${index}-${key}`}>{label}</Label>
                         <Input
                           id={`exp-${index}-${key}`}
-                          value={exp[key] as string}
+                          value={(exp[key] as string) || ""}
                           placeholder={
                             key === "endDate" && exp.current ? "Present" : ""
                           }
@@ -167,8 +167,7 @@ export function ProfileEditor({
                           ...exp,
                           technologies: e.target.value
                             .split(",")
-                            .map((t) => t.trim())
-                            .filter(Boolean),
+                            .map((t) => t.trimStart()),
                         };
                         update("experience", next);
                       }}
@@ -183,8 +182,7 @@ export function ProfileEditor({
                     )}
                     onChange={(e) => {
                       const lines = e.target.value
-                        .split("\n")
-                        .filter((l) => l.trim());
+                        .split("\n");
                       const next = [...profile.experience];
                       next[index] = {
                         ...exp,
@@ -266,7 +264,7 @@ export function ProfileEditor({
                         <Label htmlFor={`edu-${index}-${key}`}>{label}</Label>
                         <Input
                           id={`edu-${index}-${key}`}
-                          value={edu[key] as string}
+                          value={(edu[key] as string) || ""}
                           onChange={(e) => {
                             const next = [...profile.education];
                             next[index] = { ...edu, [key]: e.target.value };
@@ -288,8 +286,7 @@ export function ProfileEditor({
                       placeholder="Dean's List, Cum Laude..."
                       onChange={(e) => {
                         const lines = e.target.value
-                          .split("\n")
-                          .filter((l) => l.trim());
+                          .split("\n");
                         const next = [...profile.education];
                         next[index] = { ...edu, highlights: lines };
                         update("education", next);
@@ -359,7 +356,7 @@ export function ProfileEditor({
                         <Label htmlFor={`cert-${index}-${key}`}>{label}</Label>
                         <Input
                           id={`cert-${index}-${key}`}
-                          value={cert[key] as string}
+                          value={(cert[key] as string) || ""}
                           onChange={(e) => {
                             const next = [...profile.certifications];
                             next[index] = { ...cert, [key]: e.target.value };
@@ -435,7 +432,7 @@ export function ProfileEditor({
                         <Label htmlFor={`proj-${index}-${key}`}>{label}</Label>
                         <Input
                           id={`proj-${index}-${key}`}
-                          value={proj[key] as string}
+                          value={(proj[key] as string) || ""}
                           onChange={(e) => {
                             const next = [...profile.projects];
                             next[index] = { ...proj, [key]: e.target.value };
@@ -456,8 +453,7 @@ export function ProfileEditor({
                           ...proj,
                           technologies: e.target.value
                             .split(",")
-                            .map((t) => t.trim())
-                            .filter(Boolean),
+                            .map((t) => t.trimStart()),
                         };
                         update("projects", next);
                       }}
@@ -474,8 +470,7 @@ export function ProfileEditor({
                       value={proj.highlights.join("\n")}
                       onChange={(e) => {
                         const lines = e.target.value
-                          .split("\n")
-                          .filter((l) => l.trim());
+                          .split("\n");
                         const next = [...profile.projects];
                         next[index] = { ...proj, highlights: lines };
                         update("projects", next);
@@ -536,8 +531,7 @@ export function ProfileEditor({
                     "skills",
                     e.target.value
                       .split(",")
-                      .map((s) => s.trim())
-                      .filter(Boolean)
+                      .map((s) => s.trimStart())
                       .map((name) => ({
                         name,
                         category: "technical" as const,
@@ -566,8 +560,7 @@ export function ProfileEditor({
                     "languages",
                     e.target.value
                       .split(",")
-                      .map((s) => s.trim())
-                      .filter(Boolean),
+                      .map((s) => s.trimStart()),
                   )
                 }
                 className="text-xs"

@@ -149,13 +149,19 @@ export function AnalysisView({
           </div>
 
           <div className="space-y-2 border-t border-border pt-3">
-            <Button block variant="outline" onClick={() => setPanel("tailor")}>
+            <Button 
+              block 
+              variant="outline" 
+              onClick={() => setPanel("tailor")}
+              disabled={analysis.mode === "local"}
+            >
               <FileEdit className="h-4 w-4" /> Tailor my resume
             </Button>
             <Button
               block
               variant="outline"
               onClick={() => setPanel("cover-letter")}
+              disabled={analysis.mode === "local"}
             >
               <Mail className="h-4 w-4" /> Generate cover letter
             </Button>
@@ -163,6 +169,7 @@ export function AnalysisView({
               block
               variant="outline"
               onClick={() => setPanel("interview")}
+              disabled={analysis.mode === "local"}
             >
               <MessageSquare className="h-4 w-4" /> Prepare for interview
             </Button>

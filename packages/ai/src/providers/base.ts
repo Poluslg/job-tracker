@@ -78,6 +78,12 @@ function extractProviderMessage(body: string): string {
       if (typeof obj["message"] === "string") return obj["message"] as string;
     }
   } catch {}
+
+  const trimmed = body.trim();
+  if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html")) {
+    return "The provider returned an HTML page instead of a valid API response. Please check your Base URL.";
+  }
+
   return body.slice(0, 300);
 }
 
@@ -128,6 +134,9 @@ export function resolveModel(
   config: AIProviderConfig,
   meta: AIProviderMeta,
 ): string {
+  if (meta.id === "openrouter" || meta.id === "custom") {
+    return config.model || meta.defaultModel;
+  }
   return config.model && meta.models.includes(config.model)
     ? config.model
     : meta.defaultModel;

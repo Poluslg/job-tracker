@@ -9,12 +9,14 @@ import { GEMINI_META, GeminiProvider } from "./gemini.ts";
 import { MOCK_META, MockProvider } from "./mock.ts";
 import { OPENAI_META, OpenAIProvider } from "./openai.ts";
 import { OPENROUTER_META, OpenRouterProvider } from "./openrouter.ts";
+import { CUSTOM_META, CustomProvider } from "./custom.ts";
 
 export const PROVIDER_META: Record<AIProviderId, AIProviderMeta> = {
   openai: OPENAI_META,
   anthropic: ANTHROPIC_META,
   gemini: GEMINI_META,
   openrouter: OPENROUTER_META,
+  custom: CUSTOM_META,
   mock: MOCK_META,
 };
 
@@ -23,6 +25,7 @@ export const SELECTABLE_PROVIDERS: AIProviderMeta[] = [
   ANTHROPIC_META,
   GEMINI_META,
   OPENROUTER_META,
+  CUSTOM_META,
 ];
 
 export const PROVIDER_ORIGINS = SELECTABLE_PROVIDERS.map((p) => p.origin);
@@ -37,6 +40,8 @@ export function createProvider(config: AIProviderConfig): AIProvider {
       return new GeminiProvider(config);
     case "openrouter":
       return new OpenRouterProvider(config);
+    case "custom":
+      return new CustomProvider(config);
     case "mock":
       return new MockProvider();
   }
@@ -57,5 +62,6 @@ export {
   MockProvider,
   OpenAIProvider,
   OpenRouterProvider,
+  CustomProvider,
 };
-export { ANTHROPIC_META, GEMINI_META, MOCK_META, OPENAI_META, OPENROUTER_META };
+export { ANTHROPIC_META, GEMINI_META, MOCK_META, OPENAI_META, OPENROUTER_META, CUSTOM_META };
