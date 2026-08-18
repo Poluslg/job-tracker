@@ -1,0 +1,15 @@
+@import '@job-ai/ui/styles.css';
+
+/* Tailwind v4 scans imported workspace sources for class names. */
+@source '../../../packages/ui/src';
+@source './';
+
+/*
+ * Extension-specific surface tweaks. The popup is a fixed 400px viewport, so
+ * scrolling is contained rather than delegated to the window.
+ */
+@layer base {
+  body {
+    font-size: 13px;
+  }
+}

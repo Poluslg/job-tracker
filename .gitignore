@@ -1,0 +1,18 @@
+node_modules/
+.DS_Store
+
+# Build output
+apps/extension/dist/
+*.tsbuildinfo
+
+# Local development data store (contains resumes and API keys)
+.data/
+
+# Environment — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Editor
+.vscode/
+.idea/

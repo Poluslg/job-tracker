@@ -1,0 +1,94 @@
+import { NextResponse } from 'next/server';
+import { randomBytes } from 'node:crypto';
+import { createSession } from '@/server/auth';
+import { getRepository } from '@/server/repository';
+import { createId } from '@job-ai/core';
+import { nowIso } from '@job-ai/types';
+
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const code = url.searchParams.get('code');
+  const error = url.searchParams.get('error');
+
+  if (error) {
+    return NextResponse.redirect(`${url.origin}/login?error=${encodeURIComponent(error)}`);
+  }
+
+  if (!code) {
+    return NextResponse.json({ error: 'No code provided.' }, { status: 400 });
+  }
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    return NextResponse.json({ error: 'Google Client ID or Secret is not configured.' }, { status: 500 });
+  }
+
+  const redirectUri = `${url.origin}/api/auth/google/callback`;
+
+  try {
+    // Exchange code for token
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: redirectUri,
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (!tokenResponse.ok) {
+      console.error('Google token error:', tokenData);
+      return NextResponse.redirect(`${url.origin}/login?error=Failed to get token`);
+    }
+
+    // Get user info
+    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+      },
+    });
+
+    const userInfo = await userInfoResponse.json();
+
+    if (!userInfoResponse.ok || !userInfo.email) {
+      console.error('Google user info error:', userInfo);
+      return NextResponse.redirect(`${url.origin}/login?error=Failed to get user info`);
+    }
+
+    const email = userInfo.email;
+    const name = userInfo.name || 'Google User';
+
+    const repository = getRepository();
+    let user = await repository.findUserByEmail(email);
+
+    if (!user) {
+      // Create user if they don't exist
+      user = await repository.createUser({
+        id: createId('usr'),
+        email: email.toLowerCase(),
+        name,
+        authProvider: 'google',
+        // Set a random impossible password hash for Google sign-in users
+        passwordHash: `google:${randomBytes(32).toString('hex')}`,
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+      });
+    }
+
+    await createSession(user);
+
+    return NextResponse.redirect(`${url.origin}/dashboard`);
+  } catch (err) {
+    console.error('Google auth callback error:', err);
+    return NextResponse.redirect(`${url.origin}/login?error=An unexpected error occurred`);
+  }
+}
