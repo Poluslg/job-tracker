@@ -79,6 +79,14 @@ export type ExtMessage =
       };
     }
   | {
+      type: "GET_AVAILABLE_MODELS";
+      payload: {
+        provider: AIProviderId;
+        apiKey: string;
+        baseUrl?: string;
+      };
+    }
+  | {
       type: "CLEAR_LOCAL_DATA";
       payload: { scope: "all" | "applications" | "resumes" | "ai-key" };
     }
@@ -128,6 +136,7 @@ export interface ExtResponseMap {
   GET_SETTINGS: UserSettings;
   UPDATE_SETTINGS: UserSettings;
   TEST_AI_CONNECTION: { ok: boolean; message: string };
+  GET_AVAILABLE_MODELS: { models: string[] };
   CLEAR_LOCAL_DATA: { ok: true };
   PROGRESS: { ok: true };
 }
