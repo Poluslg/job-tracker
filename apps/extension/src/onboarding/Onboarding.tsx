@@ -22,7 +22,7 @@ import { applyTheme } from "../lib/theme.ts";
 import { ResumeUpload } from "../components/ResumeUpload.tsx";
 import { ProviderSetup } from "../components/ProviderSetup.tsx";
 
-const STEPS = ["welcome", "resume", "provider", "privacy", "ready"] as const;
+const STEPS = ["welcome", "provider", "resume", "privacy", "ready"] as const;
 type Step = (typeof STEPS)[number];
 
 const STEP_META: Record<Step, { title: string; icon: typeof Sparkles }> = {
@@ -179,7 +179,7 @@ export function Onboarding() {
                 </li>
               ))}
             </ul>
-            <Button className="mt-6" onClick={() => setStep("resume")}>
+            <Button className="mt-6" onClick={() => setStep("provider")}>
               Get started
             </Button>
           </StepShell>
@@ -194,14 +194,14 @@ export function Onboarding() {
               currentLabel={resumeLabel}
               onUploaded={(label) => {
                 setResumeLabel(label);
-                setStep("provider");
+                setStep("privacy");
               }}
             />
             {resumeLabel && (
               <Button
                 variant="ghost"
                 className="mt-4"
-                onClick={() => setStep("provider")}
+                onClick={() => setStep("privacy")}
               >
                 Continue with current resume
               </Button>
@@ -233,8 +233,8 @@ export function Onboarding() {
             </div>
 
             <div className="mt-6 flex gap-2">
-              <Button onClick={() => setStep("privacy")}>Continue</Button>
-              <Button variant="ghost" onClick={() => setStep("privacy")}>
+              <Button onClick={() => setStep("resume")}>Continue</Button>
+              <Button variant="ghost" onClick={() => setStep("resume")}>
                 Skip for now
               </Button>
             </div>

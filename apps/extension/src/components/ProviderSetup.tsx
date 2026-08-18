@@ -25,15 +25,24 @@ export function ProviderSetup({
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(
     null,
   );
+  const [availableModels, setAvailableModels] = useState<string[] | null>(null);
   const [saving, setSaving] = useState(false);
 
   const meta = PROVIDER_META[provider];
   const hasStoredKey = settings.ai.apiKey.length > 0;
 
+  const isDirty =
+    provider !== settings.ai.provider ||
+    model !== settings.ai.model ||
+    baseUrl !== settings.ai.baseUrl ||
+    customName !== settings.ai.customName ||
+    apiKey !== "";
+
   const changeProvider = (next: AIProviderId) => {
     setProvider(next);
     setModel(PROVIDER_META[next].defaultModel);
     setResult(null);
+    setAvailableModels(null);
   };
 
   const test = async () => {
@@ -45,6 +54,20 @@ export function ProviderSetup({
         payload: { provider, apiKey: apiKey || settings.ai.apiKey, model, baseUrl },
       });
       setResult(response);
+      
+      if (response.ok) {
+        try {
+          const modelsRes = await send({
+            type: "GET_AVAILABLE_MODELS",
+            payload: { provider, apiKey: apiKey || settings.ai.apiKey, baseUrl },
+          });
+          if (modelsRes.models && modelsRes.models.length > 0) {
+            setAvailableModels(modelsRes.models);
+          }
+        } catch (err) {
+          // Silently fail model fetch if test succeeds
+        }
+      }
     } catch (err) {
       setResult({
         ok: false,
@@ -136,16 +159,33 @@ export function ProviderSetup({
 
       <div>
         <Label htmlFor="model">Model</Label>
-        <Input
-          id="model"
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-          placeholder={
-            provider === "openrouter"
-              ? "vendor/model"
-              : "e.g. " + meta.defaultModel
-          }
-        />
+        {(availableModels || meta.models)?.length > 0 ? (
+          <Select
+            id="model"
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+          >
+            {(availableModels || meta.models).map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+            {!(availableModels || meta.models).includes(model) && model && (
+              <option value={model}>{model} (Custom)</option>
+            )}
+          </Select>
+        ) : (
+          <Input
+            id="model"
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            placeholder={
+              provider === "openrouter"
+                ? "vendor/model"
+                : "e.g. " + meta.defaultModel
+            }
+          />
+        )}
       </div>
 
       <div>
@@ -215,10 +255,10 @@ export function ProviderSetup({
         </Button>
         <Button
           loading={saving}
-          disabled={(!apiKey && !hasStoredKey && provider !== "custom") || (provider === "custom" && !baseUrl)}
+          disabled={!isDirty || ((!apiKey && !hasStoredKey && provider !== "custom") || (provider === "custom" && !baseUrl))}
           onClick={() => void save()}
         >
-          Save
+          {!isDirty && hasStoredKey ? "Saved" : "Save"}
         </Button>
         {hasStoredKey && (
           <Button

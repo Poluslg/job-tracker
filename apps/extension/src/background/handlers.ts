@@ -103,6 +103,9 @@ export async function handleMessage(
     case "TEST_AI_CONNECTION":
       return testConnection(message.payload);
 
+    case "GET_AVAILABLE_MODELS":
+      return getAvailableModels(message.payload);
+
     case "CLEAR_LOCAL_DATA":
       await store.clear(message.payload.scope);
       return { ok: true };
@@ -298,8 +301,8 @@ async function saveResume(payload: {
         AIResumeParse,
         {
           resumeText: payload.text.slice(0, 80_000),
-          draftSummary: "",
         },
+        { maxOutputTokens: 6000 }
       );
 
       const aiProfile = normalizeProfile(result.data);
@@ -312,6 +315,7 @@ async function saveResume(payload: {
       }
     } catch (error) {
       console.error("[Resume AI Parse Error]", error);
+      throw error;
     }
   }
 
@@ -457,6 +461,26 @@ async function testConnection(payload: {
   return result.ok
     ? { ok: true, message: `Connected to ${provider.meta.name}.` }
     : { ok: false, message: result.error.message };
+}
+
+async function getAvailableModels(payload: {
+  provider: Parameters<typeof createProvider>[0]["provider"];
+  apiKey: string;
+  baseUrl?: string;
+}) {
+  const settings = await store.getSettings();
+  const provider = createProvider({
+    ...settings.ai,
+    provider: payload.provider,
+    apiKey: payload.apiKey,
+    baseUrl: payload.baseUrl ?? "",
+  });
+
+  if (provider.listModels) {
+    const models = await provider.listModels();
+    return { models };
+  }
+  return { models: provider.meta.models };
 }
 
 export { applyTailorChanges, profileToPlainText };

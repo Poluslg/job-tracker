@@ -78,7 +78,7 @@ async function extract(file: File, type: ResumeFileType): Promise<string> {
       pdfjs.GlobalWorkerOptions.workerSrc = workerUrl.toString();
 
       const data = new Uint8Array(await file.arrayBuffer());
-      const task = pdfjs.getDocument({ data });
+      const task = pdfjs.getDocument({ data, verbosity: 0 });
       const doc = await task.promise;
 
       const pages: PdfItem[][] = [];

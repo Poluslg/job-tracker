@@ -6,7 +6,7 @@ import type {
   AIProviderMeta,
 } from "@job-ai/types";
 import { AIError } from "@job-ai/types";
-import { CONNECTION_TEST, postJson, requireKey, resolveModel } from "./base.ts";
+import { CONNECTION_TEST, getJson, postJson, requireKey, resolveModel } from "./base.ts";
 
 export const GEMINI_META: AIProviderMeta = {
   id: "gemini",
@@ -115,6 +115,20 @@ export class GeminiProvider implements AIProvider {
       };
     }
   }
+
+  async listModels(signal?: AbortSignal): Promise<string[]> {
+    const key = requireKey(this.config);
+    const json = await getJson<{
+      models?: { name: string; supportedGenerationMethods: string[] }[];
+    }>({
+      url: `${this.baseUrl}/models?key=${key}`,
+      ...(signal ? { signal } : {}),
+    });
+
+    return (json.models || [])
+      .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+      .map((m) => m.name.replace("models/", ""));
+  }
 }
 
 function toGeminiSchema(
@@ -145,6 +159,11 @@ function toGeminiSchema(
 
     for (const [key, value] of Object.entries(source)) {
       if (!allowedKeys.has(key)) {
+        continue;
+      }
+
+      if (key === "type" && typeof value === "string") {
+        result[key] = value.toUpperCase();
         continue;
       }
 

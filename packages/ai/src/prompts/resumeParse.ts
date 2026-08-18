@@ -9,7 +9,6 @@ import {
 
 export interface ResumeParseInput {
   resumeText: string;
-  draftSummary: string;
 }
 
 export const resumeParsePrompt: PromptTemplate<ResumeParseInput> = {
@@ -80,11 +79,6 @@ The output must contain data from the resume whenever that data is explicitly av
 
 RESUME:
 ${body.block}
-
-A previous rule-based parser may have produced a draft. It is NOT authoritative. Use it only as a weak reference and correct any mistakes using the original resume text.
-
-DRAFT:
-${input.draftSummary || "(no draft available)"}
 
 Extraction requirements:
 - Extract the candidate's contact information.

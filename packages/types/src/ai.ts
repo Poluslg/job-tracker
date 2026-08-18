@@ -127,4 +127,6 @@ export interface AIProvider {
   testConnection(
     signal?: AbortSignal,
   ): Promise<{ ok: true } | { ok: false; error: AIError }>;
+
+  listModels?(signal?: AbortSignal): Promise<string[]>;
 }

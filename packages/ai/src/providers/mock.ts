@@ -53,6 +53,10 @@ export class MockProvider implements AIProvider {
   async testConnection() {
     return { ok: true as const };
   }
+
+  async listModels(): Promise<string[]> {
+    return this.meta.models;
+  }
 }
 
 const FIXTURES: Record<PromptTaskId, string> = {

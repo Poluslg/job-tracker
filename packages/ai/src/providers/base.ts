@@ -89,8 +89,8 @@ function extractProviderMessage(body: string): string {
 
 export interface FetchJsonOptions {
   url: string;
-  headers: Record<string, string>;
-  body: unknown;
+  headers?: Record<string, string>;
+  body?: unknown;
   signal?: AbortSignal;
 }
 
@@ -105,6 +105,41 @@ export async function postJson<T>(opts: FetchJsonOptions): Promise<T> {
       method: "POST",
       headers: { "content-type": "application/json", ...opts.headers },
       body: JSON.stringify(opts.body),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      throw errorFromStatus(res.status, await res.text().catch(() => ""));
+    }
+    return (await res.json()) as T;
+  } catch (err) {
+    if (err instanceof AIError) throw err;
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw opts.signal?.aborted
+        ? new AIError("unknown", "Request cancelled.", false)
+        : new AIError("timeout", "The provider did not respond in time.", true);
+    }
+    throw new AIError(
+      "network",
+      "Could not reach the AI provider. Check your connection.",
+      true,
+    );
+  } finally {
+    clearTimeout(timeout);
+    opts.signal?.removeEventListener("abort", onAbort);
+  }
+}
+
+export async function getJson<T>(opts: FetchJsonOptions): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const onAbort = () => controller.abort();
+  opts.signal?.addEventListener("abort", onAbort, { once: true });
+
+  try {
+    const res = await fetch(opts.url, {
+      method: "GET",
+      headers: { ...opts.headers },
       signal: controller.signal,
     });
 
@@ -156,6 +191,6 @@ export function requireKey(config: AIProviderConfig): string {
 export const CONNECTION_TEST: AICompletionRequest = {
   system: "You are a connection test. Reply with the single word: ok",
   user: "ping",
-  maxOutputTokens: 16,
+  maxOutputTokens: 1024,
   temperature: 0,
 };

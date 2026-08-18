@@ -6,7 +6,7 @@ import type {
   AIProviderMeta,
 } from "@job-ai/types";
 import { AIError } from "@job-ai/types";
-import { CONNECTION_TEST, postJson, requireKey, resolveModel } from "./base.ts";
+import { CONNECTION_TEST, getJson, postJson, requireKey, resolveModel } from "./base.ts";
 
 export const OPENROUTER_META: AIProviderMeta = {
   id: "openrouter",
@@ -113,5 +113,14 @@ export class OpenRouterProvider implements AIProvider {
             : new AIError("unknown", "Connection test failed."),
       };
     }
+  }
+
+  async listModels(signal?: AbortSignal): Promise<string[]> {
+    const json = await getJson<{ data?: { id: string }[] }>({
+      url: `${this.baseUrl}/models`,
+      ...(signal ? { signal } : {}),
+    });
+
+    return (json.data || []).map((m) => m.id);
   }
 }

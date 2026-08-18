@@ -6,7 +6,7 @@ import type {
   AIProviderMeta,
 } from "@job-ai/types";
 import { AIError } from "@job-ai/types";
-import { CONNECTION_TEST, postJson, resolveModel } from "./base.ts";
+import { CONNECTION_TEST, getJson, postJson, resolveModel } from "./base.ts";
 
 export const CUSTOM_META: AIProviderMeta = {
   id: "custom",
@@ -109,6 +109,24 @@ export class CustomProvider implements AIProvider {
             ? err
             : new AIError("unknown", "Connection test failed."),
       };
+    }
+  }
+
+  async listModels(signal?: AbortSignal): Promise<string[]> {
+    if (!this.baseUrl) return [];
+    try {
+      const headers: Record<string, string> = {};
+      if (this.config.apiKey) {
+        headers["authorization"] = `Bearer ${this.config.apiKey}`;
+      }
+      const json = await getJson<{ data?: { id: string }[] }>({
+        url: `${this.baseUrl}/models`,
+        headers,
+        ...(signal ? { signal } : {}),
+      });
+      return (json.data || []).map((m) => m.id);
+    } catch (err) {
+      return [];
     }
   }
 }

@@ -6,7 +6,7 @@ import type {
   AIProviderMeta,
 } from "@job-ai/types";
 import { AIError } from "@job-ai/types";
-import { CONNECTION_TEST, postJson, requireKey, resolveModel } from "./base.ts";
+import { CONNECTION_TEST, getJson, postJson, requireKey, resolveModel } from "./base.ts";
 
 export const ANTHROPIC_META: AIProviderMeta = {
   id: "anthropic",
@@ -107,5 +107,16 @@ export class AnthropicProvider implements AIProvider {
             : new AIError("unknown", "Connection test failed."),
       };
     }
+  }
+
+  async listModels(signal?: AbortSignal): Promise<string[]> {
+    const key = requireKey(this.config);
+    const json = await getJson<{ data?: { id: string }[] }>({
+      url: `${this.baseUrl}/models`,
+      headers: { "x-api-key": key, "anthropic-version": "2023-06-01" },
+      ...(signal ? { signal } : {}),
+    });
+
+    return (json.data || []).map((m) => m.id);
   }
 }

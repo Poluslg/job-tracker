@@ -83,7 +83,7 @@ export function Options() {
           items={[
             { id: "resume", label: "Resume" },
             { id: "ai", label: "AI provider" },
-            { id: "scoring", label: "Scoring" },
+            // { id: "scoring", label: "Scoring" },
             { id: "appearance", label: "Appearance" },
             { id: "privacy", label: "Privacy & data" },
             { id: "account", label: "Account" },
@@ -205,6 +205,7 @@ export function Options() {
             </Card>
           </TabPanel>
 
+          {/*
           <TabPanel id="scoring" active={tab}>
             <ScoringSettings
               settings={settings}
@@ -212,6 +213,7 @@ export function Options() {
               onSaved={() => toast("Weights updated.", "success")}
             />
           </TabPanel>
+          */}
 
           <TabPanel id="appearance" active={tab}>
             <Card>
@@ -301,7 +303,7 @@ export function Options() {
                   Local data stays local until you explicitly turn sync on.
                   Signing in never uploads anything on its own.
                 </Alert>
-                <div className="flex gap-2">
+                {/* <div className="flex gap-2">
                   <Button
                     variant="outline"
                     onClick={() =>
@@ -320,7 +322,7 @@ export function Options() {
                   >
                     Open dashboard
                   </Button>
-                </div>
+                </div> */}
               </CardBody>
             </Card>
           </TabPanel>
@@ -330,6 +332,7 @@ export function Options() {
   );
 }
 
+/*
 function ScoringSettings({
   settings,
   onChange,
@@ -421,6 +424,7 @@ function ScoringSettings({
     </Card>
   );
 }
+*/
 
 function PrivacySettings({
   settings,
